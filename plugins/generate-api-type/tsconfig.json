@@ -1,0 +1,12 @@
+{
+    "extends": "../../tsconfig.base.json",
+    "compilerOptions": {
+        "module": "CommonJS",
+        "moduleResolution": "Node",
+        "rootDir": "src", // 源码目录
+        "outDir": "dist" // 输出目录
+    },
+    "include": [
+        "src/**/*"
+    ]
+}
