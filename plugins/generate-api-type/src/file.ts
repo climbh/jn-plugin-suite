@@ -11,6 +11,7 @@ export function getAllFilesInThePath(dir: string) {
   return f_s.map((file) => {
     return {
       fileName: file,
+      prefix: file.replace(/^(.*)\.api.*/, "$1"),
       content: fs.readFileSync(path.join(dir, file), "utf-8"),
     };
   });

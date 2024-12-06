@@ -1,22 +1,22 @@
-import chokidar from 'chokidar'
+import chokidar from "chokidar";
 
 export function watchFiles(
   watchPath: string,
-  onChange: (file: string) => void,
+  onChange: (file: string) => void
 ) {
   const watcher = chokidar.watch(watchPath, {
     persistent: true,
     ignoreInitial: false,
     followSymlinks: false,
-  })
+  });
 
-  watcher.on('raw', (_eName, fileChangeName: string) => {
-    onChange(fileChangeName)
-  })
+  watcher.on("raw", (_eName, fileChangeName: string) => {
+    onChange(fileChangeName);
+  });
 
-  watcher.on('error', (error) => {
-    console.error(`[File Watcher Error]: ${error}`)
-  })
+  watcher.on("error", (error) => {
+    console.error(`[File Watcher Error]: ${error}`);
+  });
 
-  return watcher
+  return watcher;
 }
