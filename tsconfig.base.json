@@ -21,11 +21,6 @@
         "packages/**/*",
         "test/**/*"
     ],
-    "paths": {
-        "@jsjn/renerrate-api-type": [
-            "./plugins/renerrate-api-type/src"
-        ] // 指向插件源码
-    },
     "exclude": [
         "node_modules",
         "dist"

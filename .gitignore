@@ -7,5 +7,5 @@ dist-ssr
 *.7z
 .idea
 yarn-error.log
-tsconfig.tsbuildinfo
-# .husky
+pnpm-lock.yaml
+tsconfig.ts
