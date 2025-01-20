@@ -6,12 +6,16 @@ import { join } from "node:path";
 
 
 class injectApiTypesWebpack {
-  private options: PluginProps
+  private options: PluginProps = {
+    watchDir: '',
+    outDir: '',
+  }
   private loadSuccess: boolean = false
   private rootPath: string = ''
 
   apply(compiler: Compiler) {
-    this.rootPath = compiler.options.context
+    this.rootPath = compiler.options.context!
+    if(!this.rootPath) return
     this.options = {
       watchDir: this.rootPath + '/src/api/modules',
       outDir: this.rootPath + '/src/api',

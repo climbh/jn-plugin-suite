@@ -5,9 +5,8 @@
 // 5、设置api文件为生成的类型
 import fs from 'node:fs';
 import path, { join } from 'node:path';
-import { matchStr } from './utils';
 import { PluginProps } from './types';
-import { exec } from 'node:child_process';
+import { matchStr } from './utils';
 
 export function generateApi(options: PluginProps) {
     const apis = readAllFilesInTheDir(options.watchDir)

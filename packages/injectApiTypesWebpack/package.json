@@ -1,10 +1,9 @@
 {
-  "name": "inject-api-types-webpack",
-  "private": true,
-  "version": "1.0.0",
+  "name": "@jsjn/inject-api-type",
+  "version": "1.0.1",
   "files": [
     "dist",
-    "index.d.ts"
+    "README.md"
   ],
   "main": "./dist/index.js",
   "types": "./index.d.ts",
@@ -12,8 +11,7 @@
     "dev": "tsup --watch",
     "build": "tsup"
   },
-  "devDependencies": {
-  },
+  "devDependencies": {},
   "dependencies": {
     "chokidar": "^4.0.1"
   }
