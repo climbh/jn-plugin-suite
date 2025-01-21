@@ -21,7 +21,7 @@ class injectApiTypesWebpack {
       watchDir: `${this.rootPath}/src/api/modules`,
       outDir: `${this.rootPath}/src/api`,
     }
-    // webpack hook to run the plugin
+
     compiler.hooks.done.tap('inject-api-types-webpack', () => {
       if (!this.loadSuccess) {
         this.run()
