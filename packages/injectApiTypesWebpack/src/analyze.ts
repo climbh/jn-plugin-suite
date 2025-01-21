@@ -11,7 +11,6 @@ import { matchStr } from './utils'
 export function generateApi(options: PluginProps) {
   const apis = readAllFilesInTheDir(options.watchDir)
   fs.writeFileSync(join(options.outDir, 'apiTypes.ts'), apis, 'utf-8')
-  // format(join(options.outDir, 'apiTypes.ts'))
 }
 
 /**

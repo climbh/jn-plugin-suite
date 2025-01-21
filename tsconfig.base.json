@@ -1,28 +1,28 @@
 {
-    "compilerOptions": {
-        "target": "ES2019",
-        "module": "ESNext",
-        "moduleResolution": "Node",
-        "strict": true,
-        "esModuleInterop": true,
-        "skipLibCheck": true,
-        "declaration": true, // 生成类型声明文件
-        "declarationMap": true, // 声明文件的 sourcemap
-        "sourceMap": true, // 生成源码映射文件
-        "outDir": "dist", // 输出目录
-        "baseUrl": ".", // 基础路径
-        "paths": {
-            // "@utils/*": [
-            //     "packages/utils/src/*"
-            // ] // 公共工具库的路径别名
-        }
+  "compilerOptions": {
+    "target": "ES2019", // 输出目录
+    "baseUrl": ".",
+    "module": "ESNext",
+    "moduleResolution": "Node", // 基础路径
+    "paths": {
+      // "@utils/*": [
+      //     "packages/utils/src/*"
+      // ] // 公共工具库的路径别名
     },
-    "include": [
-        "packages/**/*",
-        "test/**/*"
-    ],
-    "exclude": [
-        "node_modules",
-        "dist"
-    ]
+    "strict": true,
+    "declaration": true, // 生成类型声明文件
+    "declarationMap": true, // 生成源码映射文件
+    "outDir": "dist", // 声明文件的 sourcemap
+    "sourceMap": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true
+  },
+  "include": [
+    "packages/**/*",
+    "test/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
 }
