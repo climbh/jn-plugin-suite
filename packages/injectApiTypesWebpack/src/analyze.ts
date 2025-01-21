@@ -1,9 +1,4 @@
 import type { PluginProps } from './types'
-// 1、获取监听的目录下的所有文件
-// 2、获取文件的内容
-// 3、解析文件内容，获取api和name
-// 4、生成api类型文件
-// 5、设置api文件为生成的类型
 import fs from 'node:fs'
 import path, { join } from 'node:path'
 import { matchStr } from './utils'

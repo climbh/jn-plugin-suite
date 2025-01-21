@@ -17,6 +17,7 @@ class injectApiTypesWebpack {
     this.rootPath = compiler.options.context!
     if (!this.rootPath)
       return
+
     this.options = {
       watchDir: `${this.rootPath}/src/api/modules`,
       outDir: `${this.rootPath}/src/api`,
