@@ -60,3 +60,5 @@ export function injectApiType(apisFilePath: string) {
     fs.writeFileSync(apiEntrancePath, apiEntranceContent, 'utf-8')
   }
 }
+
+// 测试测试
