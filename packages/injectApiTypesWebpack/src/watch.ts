@@ -10,7 +10,7 @@ export function watchFiles(
     followSymlinks: false,
   })
 
-  watcher.on('raw', (_eName, fileChangeName: string) => {
+  watcher.on('raw', (_, fileChangeName: string) => {
     onChange(fileChangeName)
   })
 
