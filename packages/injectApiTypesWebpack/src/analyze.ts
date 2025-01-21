@@ -38,6 +38,7 @@ function assembly(content: any) {
       .map(apiName => `${apiName}: (params?: any) => Promise<Response>`)
       .join('\n')}\n}`
   })
+  // 测试测试
   interfaceStr += '\n}'
   return interfaceStr
 }
