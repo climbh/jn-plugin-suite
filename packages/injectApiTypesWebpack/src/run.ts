@@ -1,10 +1,16 @@
-import type { Parse, PluginProps, Resolver } from './types'
+import type { Parse, Resolver } from './types'
+import { exec } from 'node:child_process'
 import fs from 'node:fs'
 import path, { join } from 'node:path'
+import { ESLint } from 'eslint'
 import { parseFile } from './parse'
 import { watchFiles } from './watch'
 
-export function firstLoad(options: PluginProps) {
+export function firstLoad(options: {
+  watchDir: string
+  outDir: string
+  rootPath: string
+}) {
   // 读取文件夹下的所有文件
   const theCompleteParser: Resolver[] = fs.readdirSync(options.watchDir).filter(i => i.endsWith('.ts')).map((file) => {
     const fileName = file.split('.')[0]
@@ -18,9 +24,11 @@ export function firstLoad(options: PluginProps) {
 
   // 生成接口
   const content = assemblyInterface()
-  writeInType(content, path.join(options.outDir, 'apiTypes.ts'))
+  writeInType(content, path.join(options.rootPath, 'api-type.d.ts'))
 
   injectApiType(options.outDir)
+
+  tsConfigInject(options.rootPath)
 
   // 监听文件变化
   watchFiles(options.watchDir, (file: string) => {
@@ -28,7 +36,7 @@ export function firstLoad(options: PluginProps) {
     const resolver = readParse(join(options.watchDir, file), fileName)
     updateResolver(resolver)
     const content = assemblyInterface()
-    writeInType(content, path.join(options.outDir, 'apiTypes.ts'))
+    writeInType(content, path.join(options.rootPath, 'api-type.d.ts'))
   })
 }
 
@@ -54,17 +62,14 @@ function updateResolver(resolver: Resolver) {
   API_TYPES[resolver.fileName] = resolver.fileResolvers
 }
 
-// 拓展的response类型
-const ResponseExpand = ``
 // 生成的api类型声明需要用的语句导入
-const interfaceImportStr = `import type { BaseResponse } from '@jsjn/types/Response' \n interface Response extends BaseResponse { \n ${ResponseExpand} \n } \n`
 function assemblyInterface() {
-  let interfaceStr = `${interfaceImportStr}export interface ApiTypes {`
+  let interfaceStr = `/// <reference path="@jsjn/types/Response" /> \n declare interface IApiType {`
 
   Object.keys(API_TYPES).forEach((moduleName) => {
     const apis = API_TYPES[moduleName]
     interfaceStr += `\n${moduleName}: {\n${apis
-      .map(api => `/**\n*  ${api.comment}\n*/ \n${api.name}: (params?: any) => Promise<Response>`)
+      .map(api => `${api.comment ? `/**\n*  ${api.comment}\n*/` : ''} \n${api.name}: (params?: any) => Promise<BaseResponse>`)
       .join('\n')}\n}`
   })
   // 测试测试
@@ -78,6 +83,7 @@ function assemblyInterface() {
   */
 function writeInType(Content: string, path: string) {
   fs.writeFileSync(path, Content, 'utf-8')
+  exec(`npx prettier --write ${path}`)
 }
 
 /**
@@ -88,12 +94,26 @@ function injectApiType(apisFilePath: string) {
   // 设置默认导出的类型
   const apiEntrancePath = path.join(apisFilePath, 'index.ts')
   const reg = /(apis =).*/ // 修改为只匹配一行
-  const replaceStr = 'apis = Object.assign({}, coreApis, localApis) as any as ApiTypes'
+  const replaceStr = 'apis = Object.assign({}, coreApis, localApis) as any as IApiType'
   let apiEntranceContent = fs.readFileSync(apiEntrancePath, 'utf-8')
   // 将类型导入和设置接口的类型
-  if (!/import \{ ApiTypes \} from/.test(apiEntranceContent)) {
-    apiEntranceContent = `import { ApiTypes } from './apiTypes'\n${apiEntranceContent}`
+  if (!apiEntranceContent.includes('IApiType')) {
     apiEntranceContent = apiEntranceContent.replace(reg, `${replaceStr}`)
     fs.writeFileSync(apiEntrancePath, apiEntranceContent, 'utf-8')
   }
+}
+
+function tsConfigInject(rootPath: string) {
+  const tsConfigPath = path.join(rootPath, 'tsconfig.json')
+  const tsConfigContent = fs.readFileSync(tsConfigPath, 'utf-8')
+  const tsConfig = JSON.parse(tsConfigContent)
+
+  if (!tsConfig.include.includes('api-type.d.ts')) {
+    tsConfig.include.push('./api-type.d.ts')
+  }
+
+  fs.writeFileSync(tsConfigPath, JSON.stringify(tsConfig, null, 2), 'utf-8')
+
+  // eslint 格式化
+  exec(`npx lint --fix ${tsConfigPath}`)
 }

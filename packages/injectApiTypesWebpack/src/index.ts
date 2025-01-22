@@ -3,11 +3,8 @@ import type { PluginProps } from './types'
 import { firstLoad } from './run'
 
 class injectApiTypesWebpack {
-  private options: PluginProps = {
-    watchDir: '',
-    outDir: '',
-  }
-
+  private watchDir: string = ''
+  private outDir: string = ''
   private loadSuccess: boolean = false
   private rootPath: string = ''
 
@@ -16,10 +13,8 @@ class injectApiTypesWebpack {
     if (!this.rootPath)
       return
 
-    this.options = {
-      watchDir: `${this.rootPath}/src/api/modules`,
-      outDir: `${this.rootPath}/src/api`,
-    }
+    this.watchDir = `${this.rootPath}/src/api/modules`
+    this.outDir = `${this.rootPath}/src/api`
 
     compiler.hooks.done.tap('inject-api-types-webpack', () => {
       if (!this.loadSuccess) {
@@ -31,7 +26,11 @@ class injectApiTypesWebpack {
 
   run() {
     // 默认生成api类型文件
-    firstLoad(this.options)
+    firstLoad({
+      watchDir: this.watchDir,
+      outDir: this.outDir,
+      rootPath: this.rootPath,
+    })
   }
 }
 

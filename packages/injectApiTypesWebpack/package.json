@@ -1,6 +1,6 @@
 {
   "name": "@jsjn/inject-api-type",
-  "version": "1.0.4",
+  "version": "1.0.6",
   "description": "注入接口类型，使得api调用时获取智能提示, 适用于webpack。",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -10,7 +10,8 @@
   ],
   "scripts": {
     "dev": "tsup --watch",
-    "build": "tsup"
+    "build": "tsup",
+    "publish": "npm version patch && npm publish --access public"
   },
   "dependencies": {
     "chokidar": "^4.0.1"
