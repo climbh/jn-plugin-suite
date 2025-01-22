@@ -14,3 +14,15 @@ export interface PluginProps {
    */
   autoUsageType?: boolean
 }
+
+// parse解析体
+export interface Parse {
+  name: string
+  api: string
+  comment?: string
+}
+
+export interface Resolver {
+  fileName: string
+  fileResolvers: Parse[]
+}

@@ -1,8 +1,6 @@
 import type { Compiler } from 'webpack'
 import type { PluginProps } from './types'
-import { join } from 'node:path'
-import { generateApi, injectApiType } from './analyze'
-import { watchFiles } from './watch'
+import { firstLoad } from './run'
 
 class injectApiTypesWebpack {
   private options: PluginProps = {
@@ -33,13 +31,7 @@ class injectApiTypesWebpack {
 
   run() {
     // 默认生成api类型文件
-    generateApi(this.options)
-    // 注入api类型
-    injectApiType(join(this.options.outDir))
-    // 监听文件变化，重新生成api类型文件
-    watchFiles(this.options.watchDir, () => {
-      generateApi(this.options)
-    })
+    firstLoad(this.options)
   }
 }
 
