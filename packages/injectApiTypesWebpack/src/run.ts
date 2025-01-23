@@ -114,7 +114,7 @@ function tsConfigInject(rootPath: string) {
   const tsConfigContent = fs.readFileSync(tsConfigPath, 'utf-8')
   const tsConfig = JSON.parse(tsConfigContent)
 
-  if (!tsConfig.include.includes('api-type.d.ts')) {
+  if (!tsConfig.include.join('').includes('api-type.d.ts')) {
     tsConfig.include.push('./api-type.d.ts')
   }
 
