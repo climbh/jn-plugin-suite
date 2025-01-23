@@ -62,9 +62,23 @@ function updateResolver(resolver: Resolver) {
   API_TYPES[resolver.fileName] = resolver.fileResolvers
 }
 
+/*
+  * 生成文件
+  */
+function writeInType(Content: string, path: string) {
+  fs.writeFileSync(path, Content, 'utf-8')
+  exec(`npx prettier --write ${path}`)
+}
+
 // 生成的api类型声明需要用的语句导入
 function assemblyInterface() {
-  let interfaceStr = `/// <reference path="@jsjn/types/Response" /> \n declare interface IApiType {`
+  let interfaceStr = `interface  BaseResponse {
+    code: '000000' | '500000' | '800403' | '800405'
+    data: any
+    msg: string
+    status: number | string
+    success: boolean
+  } \n declare interface IApiType {`
 
   Object.keys(API_TYPES).forEach((moduleName) => {
     const apis = API_TYPES[moduleName]
@@ -76,14 +90,6 @@ function assemblyInterface() {
   interfaceStr += '\n}'
 
   return interfaceStr
-}
-
-/*
-  * 生成文件
-  */
-function writeInType(Content: string, path: string) {
-  fs.writeFileSync(path, Content, 'utf-8')
-  exec(`npx prettier --write ${path}`)
 }
 
 /**
