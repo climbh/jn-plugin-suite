@@ -2,7 +2,6 @@ import type { Parse, Resolver } from './types'
 import { exec } from 'node:child_process'
 import fs from 'node:fs'
 import path, { join } from 'node:path'
-import { ESLint } from 'eslint'
 import { parseFile } from './parse'
 import { watchFiles } from './watch'
 

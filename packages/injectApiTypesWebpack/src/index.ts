@@ -1,5 +1,4 @@
 import type { Compiler } from 'webpack'
-import type { PluginProps } from './types'
 import { firstLoad } from './run'
 
 class injectApiTypesWebpack {
