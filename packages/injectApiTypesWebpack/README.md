@@ -1,25 +1,30 @@
-### 该插件用于辅助api调用时无法识别类型的问题
+### 该插件用于辅助api调用时无法识别类型的问题,当然这个插件只是针对金农的微前端项目
 
 #### 安装
 
 ```bash
 pnpm add @jsjn/inject-api-type
+
+// 这个是必须的,插件内使用了ts-morph来解析ts文件
+pnpm add ts-morph
 ```
 
 #### 使用
 
-在项目根目录下的vue.config.js中添加如下配置
+在要使用的项目目录下的vue.config.js中添加如下配置
 
 ```js
 const InjectApiType = require('@jsjn/inject-api-type')
 module.exports = defineConfig({
-    configureWebpack: {
-        plugins: [
-            new InjectApiType()
-        ]
-    }
+  configureWebpack: {
+    plugins: [
+      new InjectApiType()
+    ]
+  }
 })
 ```
+
+> 注意: vue.config.js同级的tsconfig.json中不能有注释内容,否则会导致项目运行时报错
 
 ![image](https://s1.imagehub.cc/images/2025/01/20/5d612b03a067af801c4e495eba01dedb.png)
 
