@@ -53,10 +53,6 @@ export interface SensorsConfig {
    */
   heatmap: {
     /**
-     * 包含该列表内属性的元素会自动采集上报
-     */
-    track_attr?: string[]
-    /**
      * 是否开启点击图 (默认为开启)
      */
     clickmap: 'default' | 'not_collect'

@@ -13,7 +13,7 @@ export default {
   },
 }
 
-function collectPagePerformance() {
+export function collectPagePerformance() {
   window.addEventListener('load', () => {
     const nav = (performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming ?? performance.timing)
     if (!nav)
@@ -50,16 +50,15 @@ function collectPagePerformance() {
     const domParse = nav.domComplete - nav.domInteractive
 
     addBuriedPoint('$pageload', {
-      unit: 'ms',
       whiteScreen,
       domReady,
       loadTime,
-      ttfb,
       request,
-      dns,
-      tcp,
-      redirect,
-      unload,
+      ttfb,
+      // dns,
+      // tcp,
+      // redirect,
+      // unload,
       domParse,
     })
   })

@@ -1,23 +1,23 @@
 import pageleave from 'sa-sdk-javascript/dist/web/plugin/pageleave/index.es6.js'
 import rgp from 'sa-sdk-javascript/dist/web/plugin/register-properties/index.es6.js'
-import pageload from './pageload'
 import { setRgp } from '../core/instance'
+import pageload from './pageload'
 
-export function registerPlugin(sensorsInstance: any) {
+export function registerPlugin(monitorInstance: any) {
   /**
    * 页面加载时长的插件
    * event_duration 为页面的加载时长
    * $page_resource_size 页面资源大小
    * https://github.com/sensorsdata/sa-sdk-javascript/tree/master/dist/web/plugin/pageload
    */
-  sensorsInstance.use(pageload)
+  monitorInstance.use(pageload)
 
   /**
    * 页面停留时长的插件
    * event_duration 为页面的停留时长
    * https://github.com/sensorsdata/sa-sdk-javascript/tree/master/dist/web/plugin/pageleave
    */
-  sensorsInstance.use(pageleave, {
+  monitorInstance.use(pageleave, {
     custom_props: {
 
     },
@@ -29,13 +29,9 @@ export function registerPlugin(sensorsInstance: any) {
     },
   })
 
-
-
-
   /**
    * 注册属性插件实例
    */
-  const registerPlugin = sensorsInstance.use(rgp)
-  setRgp(registerPlugin)
-
+  const rgpInstance = monitorInstance.use(rgp)
+  setRgp(rgpInstance)
 }

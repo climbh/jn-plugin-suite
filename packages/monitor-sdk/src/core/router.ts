@@ -1,7 +1,6 @@
 import type { RouteLocationNormalized } from 'vue-router'
 import useApp from '../hooks/useApp'
 import { getStore } from '../utils/store'
-import { addRegisterProperty } from './event'
 import { addMenuInfo, loginHandle, loginOutHandle } from './private-event'
 
 let _useId = getStore().currentUserInfo.loginInfo.userId
@@ -16,9 +15,10 @@ export default function listeningToRoute() {
 
   $router?.beforeEach((to, from, next) => {
     associationUser(to)
+    // addMenuInfo(to.path)
     next()
   })
-  $router?.afterEach((to) => {
+  $router?.beforeResolve((to) => {
     addMenuInfo(to.path)
   })
 }
@@ -41,10 +41,5 @@ function associationUser(to: RouteLocationNormalized) {
   if (uid) {
     _useId = uid
     loginHandle(uid)
-    const { instituInfo } = $store.state.currentUserInfo
-    addRegisterProperty({
-      useId: uid,
-      instituId: instituInfo.instituId,
-    })
   }
 }

@@ -1,10 +1,15 @@
 import type { App } from 'vue'
-import sensors from 'sa-sdk-javascript'
+import monitor from 'sa-sdk-javascript'
 
 /**
  * 神策SDK实例
  */
-export { sensors as sensorsInstance }
+
+export function getMonitorInstance() {
+  if (window.__ENABLE_MONITOR_SDK__)
+    return monitor
+  return null
+}
 
 /**
  * Vue应用实例
@@ -41,21 +46,24 @@ export interface RGP {
 }
 
 export interface RgpRegisterOption {
-  events: string[]
-  properties: string | number | boolean | Date | object | Array<string | number | boolean | Date | object>
+  events: `$${string}`[]
+  properties: Record<string, any>
 }
 
 export interface RgpHookRegisterOption {
-  event: string
+  event: `$${string}`
   properties: Record<string, any>
   data: Record<string, any>
-  [key: string]: any
 }
 /**
  * 注册属性插件实例
  */
-export let rgp: RGP
+let rgp: RGP
 
 export function setRgp(rgpInstance: RGP) {
   rgp = rgpInstance
+}
+
+export function getRgp() {
+  return rgp
 }

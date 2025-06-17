@@ -2,8 +2,10 @@ import type { DeepPartial, SensorsConfig } from './types'
 import { registerPlugin } from '../plugins'
 import { REPORT_SERVER_URL } from '../url'
 import { mergeData } from '../utils'
-import { sensorsInstance } from './instance'
+import { getMonitorInstance } from './instance'
 import listeningToRoute from './router'
+
+const monitorInstance = getMonitorInstance()
 
 export interface InitSensorsOptions {
   config: DeepPartial<SensorsConfig>
@@ -44,20 +46,21 @@ export function initSensors(
   }
 
   // 注册插件
-  registerPlugin(sensorsInstance)
+  registerPlugin(monitorInstance)
 
   // 监听路由
   listeningToRoute()
 
   // 初始化神策 SDK
-  sensorsInstance.init(mergeData(config || {}, defaultConfig))
+  monitorInstance?.init(mergeData(config || {}, defaultConfig))
 
   // 神策 SDK 初始化完成，公共属性埋点(这里的属性是公共属性，会自动添加到所有事件中)
-  sensorsInstance.registerPage({
+  monitorInstance?.registerPage({
     platform_type: 'Web',
+    $browser: navigator.userAgent,
     ...carryingConfig,
   })
 
   // 自动采集事件埋点：主要用于主动触发页面浏览事件，一般只在页面配置后调用一次即可
-  sensorsInstance.quick('autoTrack')
+  monitorInstance?.quick('autoTrack')
 }
