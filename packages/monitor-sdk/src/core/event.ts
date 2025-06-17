@@ -72,7 +72,13 @@ export function addBuriedPoint(eventName: `$${string}`, properties = {}): void {
  *
  */
 export function createBuriedPoint(eventName: `$${string}`, properties: Record<string, any> = {}) {
-  let _properties = properties
+  // 变量名: 创建针对当前实例的流程id
+
+  const current_process_id = crypto.randomUUID()
+  let _properties: any = {
+    ...properties,
+    current_process_id,
+  }
   const builder = {
     /**
      * 批量添加上报参数
@@ -87,12 +93,19 @@ export function createBuriedPoint(eventName: `$${string}`, properties: Record<st
     },
 
     removeProperties(keys: string[]) {
-      keys.forEach(key => delete _properties[key])
+      keys.forEach((key) => {
+        if (key === 'current_process_id') {
+          return
+        }
+        delete _properties[key]
+      })
       return builder
     },
 
     clearProperties() {
-      _properties = {}
+      _properties = {
+        current_process_id,
+      }
       return builder
     },
 
