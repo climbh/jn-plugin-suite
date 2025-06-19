@@ -1,14 +1,15 @@
-import type { DeepPartial, SensorsConfig } from './types'
+import type { App } from 'vue'
+import type { DeepPartial } from '../utils/type'
+import type { MonitorSdkConfig } from './types'
 import { registerPlugin } from '../plugins'
-import { REPORT_SERVER_URL } from '../url'
 import { mergeData } from '../utils'
-import { getMonitorInstance } from './instance'
+import { getMonitorInstance, setApp } from './instance'
 import listeningToRoute from './router'
 
 const monitorInstance = getMonitorInstance()
 
-export interface InitSensorsOptions {
-  config: DeepPartial<SensorsConfig>
+export interface InitMonitorSdkOptions {
+  config: DeepPartial<MonitorSdkConfig>
   carryingConfig: Record<string, any>
 }
 
@@ -17,18 +18,20 @@ export interface InitSensorsOptions {
  * @param config 配置
  * @param carryingConfig 公共属性，会自动添加到所有事件中
  */
-export function initSensors(
-  options?: Partial<InitSensorsOptions>,
+function initMonitorSdk(
+  options?: Partial<InitMonitorSdkOptions>,
 ) {
   const { config, carryingConfig } = options ?? {}
-  const defaultConfig: SensorsConfig = {
-    server_url: REPORT_SERVER_URL, // 数据接收地址
+  const defaultConfig: MonitorSdkConfig = {
+    disable_sdk: false,
+    server_url: '', // 数据接收地址
     batch_send: {
       datasend_timeout: 10000, // 一次请求超过多少毫秒的话自动取消，防止请求无响应。
       send_interval: 10000, // 间隔多少毫秒发一次数据。
       storage_length: 200, // 存储 localStorage 条数最大值，默认：200 。如 localStorage 条数超过该值，则使用 image 方式立即发送数据。v1.24.8 以上支持。
     },
     send_type: 'ajax',
+    use_base64: true,
     use_client_time: true,
     is_track_single_page: true, // 单页应用页面浏览事件采集(url改变就触发)
     use_app_track: true,
@@ -52,7 +55,20 @@ export function initSensors(
   listeningToRoute()
 
   // 初始化神策 SDK
-  monitorInstance?.init(mergeData(config || {}, defaultConfig))
+  const initConfig = mergeData(config || {}, defaultConfig)
+
+  // 神策sdk没有直接禁用sdk的配置, 所以手动设置 server_url 为空来阻止上报
+  if (!initConfig.disable_sdk) {
+    initConfig.server_url = ''
+    return
+  }
+
+  if (!initConfig.server_url) {
+    console.warn('当前 server_url 为空或不正确，network 中不会发数据，请配置正确的 server_url！')
+    return
+  }
+
+  monitorInstance?.init(initConfig)
 
   // 神策 SDK 初始化完成，公共属性埋点(这里的属性是公共属性，会自动添加到所有事件中)
   monitorInstance?.registerPage({
@@ -63,4 +79,9 @@ export function initSensors(
 
   // 自动采集事件埋点：主要用于主动触发页面浏览事件，一般只在页面配置后调用一次即可
   monitorInstance?.quick('autoTrack')
+}
+
+export function setUp(app: App, options: Partial<InitMonitorSdkOptions>) {
+  setApp(app)
+  initMonitorSdk(options)
 }

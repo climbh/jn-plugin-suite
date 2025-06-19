@@ -1,16 +1,18 @@
 import type { App } from 'vue'
-import { initSensors, type InitSensorsOptions } from './core/init'
-import { setApp } from './core/instance'
+import type { MonitorSdkConfig } from './core/types'
+import type { DeepPartial } from './utils/type'
+import { setUp } from './core/init'
 
 export * from './core'
+export * from './core/types'
 
-export default function (options?: Partial<InitSensorsOptions>) {
+export default function (config: DeepPartial<MonitorSdkConfig>, carryingConfig: Record<string, any>) {
   return {
     install(app: App) {
-      if (!window.__ENABLE_MONITOR_SDK__)
-        return
-      setApp(app)
-      initSensors(options)
+      setUp(app, {
+        config,
+        carryingConfig,
+      })
     },
   }
 }

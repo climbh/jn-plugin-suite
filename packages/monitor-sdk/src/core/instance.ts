@@ -6,9 +6,7 @@ import monitor from 'sa-sdk-javascript'
  */
 
 export function getMonitorInstance() {
-  if (window.__ENABLE_MONITOR_SDK__)
-    return monitor
-  return null
+  return monitor
 }
 
 /**

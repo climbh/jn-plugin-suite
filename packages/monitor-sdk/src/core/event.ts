@@ -1,4 +1,5 @@
 import type { RgpHookRegisterOption, RgpRegisterOption } from './instance'
+import type { Builder } from './types'
 /**
  * 这里主要是提供事件的注册和触发功能
  */
@@ -54,32 +55,19 @@ export function addEventRegister(option: RgpRegisterOption | ((eventInfo: RgpHoo
 export function addBuriedPoint(eventName: `$${string}`, properties = {}): void {
   monitorInstance?.track(eventName, properties)
 }
-
 /**
  * 创建自定义埋点类型上报事件
  * @param eventName 事件名称（必须以$开头）
  * @param properties 上报数据
  * @returns 返回一个对象，支持链式调用
- * 示例：
- * const h = createBuriedPoint('$click')
- * h.addProperties({
- *   name: '张三',
- *   age: 18,
- * }).report().clearProperties().addProperties({
- *   name: '李四',
- *   age: 20,
- * }).report()
- *
  */
 export function createBuriedPoint(eventName: `$${string}`, properties: Record<string, any> = {}) {
-  // 变量名: 创建针对当前实例的流程id
-
   const current_process_id = crypto.randomUUID()
   let _properties: any = {
     ...properties,
     current_process_id,
   }
-  const builder = {
+  const builder: Builder = {
     /**
      * 批量添加上报参数
      * @param props 参数对象
@@ -117,6 +105,5 @@ export function createBuriedPoint(eventName: `$${string}`, properties: Record<st
       return builder
     },
   }
-
   return builder
 }

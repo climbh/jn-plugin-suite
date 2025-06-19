@@ -1,4 +1,11 @@
-export interface SensorsConfig {
+/**
+ * sdk 配置
+ */
+export interface MonitorSdkConfig {
+  /**
+   * 开启监控(默认开启)
+   */
+  disable_sdk: boolean
   /**
    * 数据接收地址
    */
@@ -24,6 +31,11 @@ export interface SensorsConfig {
    * 发送类型
    */
   send_type: 'image' | 'ajax' | 'beacon'
+
+  /**
+   * 是否使用 base64 加密
+   */
+  use_base64: boolean
 
   /**
    * 是否使用客户端时间
@@ -63,12 +75,30 @@ export interface SensorsConfig {
   }
 }
 
-// 工具类型：递归将所有属性变为可选
-export type DeepPartial<T> = {
-  [P in keyof T]?: T[P] extends object
-    // eslint-disable-next-line ts/no-unsafe-function-type
-    ? T[P] extends Function
-      ? T[P]
-      : DeepPartial<T[P]>
-    : T[P]
+/**
+ * 创建自定义埋点类型上报事件的构建器
+ */
+export interface Builder {
+  /**
+   * 添加属性
+   * @param props 属性
+   * @returns 构建器
+   */
+  addProperties: (props: Record<string, any>) => Builder
+  /**
+   * 删除属性
+   * @param keys 属性名
+   * @returns 构建器
+   */
+  removeProperties: (keys: string[]) => Builder
+  /**
+   * 清空属性
+   * @returns 构建器
+   */
+  clearProperties: () => Builder
+  /**
+   * 上报埋点
+   * @returns 构建器
+   */
+  report: () => Builder
 }
