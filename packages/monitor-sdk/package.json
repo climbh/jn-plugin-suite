@@ -1,7 +1,7 @@
 {
   "name": "@jsjn/monitor-sdk",
   "type": "module",
-  "version": "0.0.2",
+  "version": "0.1.0",
   "description": "金农前端平台监控系统",
   "exports": {
     "import": "./dist/index.js",
@@ -19,7 +19,7 @@
     "dev": "tsup --watch",
     "build": "tsup",
     "publish:ci": "pnpm build && npm version patch && npm publish --access public",
-    "publish": "pnpm build && npm version patch && npm publish"
+    "publish": "npm publish"
   },
   "dependencies": {
     "sa-sdk-javascript": "1.27.4"
