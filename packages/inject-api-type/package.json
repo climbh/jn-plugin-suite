@@ -16,5 +16,8 @@
   "dependencies": {
     "chokidar": "^4.0.1"
   },
-  "devDependencies": {}
+  "devDependencies": {},
+  "publishConfig": {
+    "registry": "http://172.31.71.159/repository/npm-jsjngf/"
+  }
 }

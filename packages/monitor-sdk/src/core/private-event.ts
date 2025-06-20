@@ -1,7 +1,7 @@
 import type { RouteConfig } from '../utils'
 import useApp from '../hooks/useApp'
 import { findNodeBy } from '../utils'
-import { addRegisterProperty } from './event'
+import { registerSuperProperties } from './event'
 import { getMonitorInstance } from './instance'
 
 const monitorInstance = getMonitorInstance()
@@ -19,7 +19,7 @@ export const addLogin = (userId: string): void => monitorInstance?.login(userId)
  */
 export function loginOut() {
   monitorInstance?.logout()
-  addRegisterProperty({
+  registerSuperProperties({
     $institu_id: '',
     $user_id: '',
     $authorization: '',
@@ -40,8 +40,8 @@ export function addMenuInfo(path: string) {
     _routerConfigs = routeConfigs
   const node = findNodeBy(_routerConfigs, path, 'path')
   const menuId = (node?.meta.funcId as string) || ''
-  addRegisterProperty({ $menu_id: menuId })
-  addRegisterProperty({ $menu_id_before: beforeMenuId })
+  registerSuperProperties({ $menu_id: menuId })
+  registerSuperProperties({ $menu_id_before: beforeMenuId })
 
   // 查到菜单id, 并且不是当前的菜单
   if (menuId && beforeMenuId !== menuId)
@@ -65,7 +65,7 @@ export function loginHandle(userId?: string) {
     return
 
   addLogin(_userId)
-  addRegisterProperty({
+  registerSuperProperties({
     $institu_id: instituInfo.instituId,
     $user_id: _userId,
     $authorization: access_token,

@@ -1,4 +1,4 @@
-import { addBuriedPoint } from '../core'
+import { reportEvent } from '../core'
 
 /**
  * 自定义页面加载性能插件保证更多的数据上报
@@ -49,7 +49,7 @@ export function collectPagePerformance() {
     // 10. DOM 解析耗时
     const domParse = nav.domComplete - nav.domInteractive
 
-    addBuriedPoint('$pageload', {
+    reportEvent('$pageload', {
       whiteScreen,
       domReady,
       loadTime,

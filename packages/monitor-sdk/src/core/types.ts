@@ -78,27 +78,27 @@ export interface MonitorSdkConfig {
 /**
  * 创建自定义埋点类型上报事件的构建器
  */
-export interface Builder {
+export interface Tracker {
   /**
    * 添加属性
    * @param props 属性
    * @returns 构建器
    */
-  addProperties: (props: Record<string, any>) => Builder
+  addProperties: (props: Record<string, any>) => Tracker
   /**
    * 删除属性
    * @param keys 属性名
    * @returns 构建器
    */
-  removeProperties: (keys: string[]) => Builder
+  removeProperties: (keys: string[]) => Tracker
   /**
    * 清空属性
    * @returns 构建器
    */
-  clearProperties: () => Builder
+  clearProperties: () => Tracker
   /**
    * 上报埋点
    * @returns 构建器
    */
-  report: () => Builder
+  report: () => Tracker
 }

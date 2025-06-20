@@ -1,19 +1,18 @@
 import type { RgpHookRegisterOption, RgpRegisterOption } from './instance'
-import type { Builder } from './types'
+import type { Tracker } from './types'
 /**
  * 这里主要是提供事件的注册和触发功能
  */
 import { getMonitorInstance, getRgp } from './instance'
 
+const monitorInstance = getMonitorInstance()
+
 /**
- * 添加事件上报的公共属性
+ * 注册公共属性
  * @param properties 公共属性
  * @description 添加的公共属性会自动添加到所有事件中
  */
-
-const monitorInstance = getMonitorInstance()
-
-export function addRegisterProperty(properties = {}): void {
+export function registerSuperProperties(properties = {}): void {
   monitorInstance?.registerPage(properties)
 }
 
@@ -37,37 +36,37 @@ export function addRegisterProperty(properties = {}): void {
  *   }
  * })
  */
-export function addEventRegister(option: RgpRegisterOption | ((eventInfo: RgpHookRegisterOption) => Record<string, any>)) {
-  const rgp = getRgp()
-  if (typeof option === 'function') {
-    rgp.hookRegister(option)
-  }
-  else {
-    rgp.register(option)
-  }
-}
+// function registerEventProperties(option: RgpRegisterOption | ((eventInfo: RgpHookRegisterOption) => Record<string, any>)) {
+//   const rgp = getRgp()
+//   if (typeof option === 'function') {
+//     rgp.hookRegister(option)
+//   }
+//   else {
+//     rgp.register(option)
+//   }
+// }
 
 /**
- * 自定义埋点类型上报事件
+ * 上报自定义类型事件
  * @param eventName 事件名称（必须以$开头）
  * @param properties 上报数据
  */
-export function addBuriedPoint(eventName: `$${string}`, properties = {}): void {
+export function reportEvent(eventName: `$${string}`, properties = {}): void {
   monitorInstance?.track(eventName, properties)
 }
 /**
- * 创建自定义埋点类型上报事件
+ * 创建事件上报的构建器
  * @param eventName 事件名称（必须以$开头）
  * @param properties 上报数据
  * @returns 返回一个对象，支持链式调用
  */
-export function createBuriedPoint(eventName: `$${string}`, properties: Record<string, any> = {}) {
-  const current_process_id = crypto.randomUUID()
+export function createEventTracker(eventName: `$${string}`, properties: Record<string, any> = {}) {
+  const tracking_uuid = crypto.randomUUID()
   let _properties: any = {
     ...properties,
-    current_process_id,
+    tracking_uuid,
   }
-  const builder: Builder = {
+  const tracker: Tracker = {
     /**
      * 批量添加上报参数
      * @param props 参数对象
@@ -77,7 +76,7 @@ export function createBuriedPoint(eventName: `$${string}`, properties: Record<st
         ..._properties,
         ...props,
       }
-      return builder
+      return tracker
     },
 
     removeProperties(keys: string[]) {
@@ -87,23 +86,23 @@ export function createBuriedPoint(eventName: `$${string}`, properties: Record<st
         }
         delete _properties[key]
       })
-      return builder
+      return tracker
     },
 
     clearProperties() {
       _properties = {
-        current_process_id,
+        tracking_uuid,
       }
-      return builder
+      return tracker
     },
 
     /**
      * 执行上报
      */
     report() {
-      addBuriedPoint(eventName, _properties)
-      return builder
+      reportEvent(eventName, _properties)
+      return tracker
     },
   }
-  return builder
+  return tracker
 }
