@@ -1,9 +1,8 @@
-import type { RgpHookRegisterOption, RgpRegisterOption } from './instance'
 import type { Tracker } from './types'
 /**
  * 这里主要是提供事件的注册和触发功能
  */
-import { getMonitorInstance, getRgp } from './instance'
+import { getMonitorInstance } from './instance'
 
 const monitorInstance = getMonitorInstance()
 

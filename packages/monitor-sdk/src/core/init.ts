@@ -23,7 +23,7 @@ function initMonitorSdk(
 ) {
   const { config, carryingConfig } = options ?? {}
   const defaultConfig: MonitorSdkConfig = {
-    disable_sdk: false,
+    enable_sdk: false,
     server_url: '', // 数据接收地址
     batch_send: {
       datasend_timeout: 10000, // 一次请求超过多少毫秒的话自动取消，防止请求无响应。
@@ -58,7 +58,7 @@ function initMonitorSdk(
   const initConfig = mergeData(config || {}, defaultConfig)
 
   // 神策sdk没有直接禁用sdk的配置, 所以手动设置 server_url 为空来阻止上报
-  if (!initConfig.disable_sdk) {
+  if (!initConfig.enable_sdk) {
     initConfig.server_url = ''
     return
   }

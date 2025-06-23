@@ -5,7 +5,7 @@ export interface MonitorSdkConfig {
   /**
    * 开启监控(默认开启)
    */
-  disable_sdk: boolean
+  enable_sdk: boolean
   /**
    * 数据接收地址
    */
