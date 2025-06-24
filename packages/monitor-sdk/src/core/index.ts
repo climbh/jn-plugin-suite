@@ -1,9 +1,3 @@
-import { getMonitorInstance } from './instance'
-
 export * from './event'
 
-const monitorInstance = getMonitorInstance()
-
-export {
-  monitorInstance,
-}
+export { getMonitorInstance } from './instance'
