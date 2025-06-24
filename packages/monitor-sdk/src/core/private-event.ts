@@ -1,6 +1,6 @@
 import type { RouteConfig } from '../utils'
 import useApp from '../hooks/useApp'
-import { findNodeBy } from '../utils'
+import { findNodeAndParentsByPath, findNodeBy } from '../utils'
 import { registerSuperProperties } from './event'
 import { getMonitorInstance } from './instance'
 
@@ -34,22 +34,32 @@ export function loginOut() {
  */
 let _routerConfigs: RouteConfig[] = []
 let beforeMenuId = ''
+let beforeMenuParentIds: string[] = []
 export function addMenuInfo(path: string) {
   const { routeConfigs } = useApp().$store.state.appFuncTree
   if (Object.keys(routeConfigs).length > 0)
     _routerConfigs = routeConfigs
-  const node = findNodeBy(_routerConfigs, path, 'path')
+  const nodes = findNodeAndParentsByPath(_routerConfigs, path)
+  const node = nodes?.at(-1)
+  const parentIds: string[] = nodes?.slice(0, nodes.length - 1)?.map((i) => (i.meta?.funcId || '') as string) ?? []
   const menuId = (node?.meta.funcId as string) || ''
   registerSuperProperties({ $menu_id: menuId })
+  registerSuperProperties({ $menu_parentIds: parentIds })
   registerSuperProperties({ $menu_id_before: beforeMenuId })
+  registerSuperProperties({ $menu_id_before_parentIds: beforeMenuParentIds })
 
   // 查到菜单id, 并且不是当前的菜单
-  if (menuId && beforeMenuId !== menuId)
+  if (menuId && beforeMenuId !== menuId) {
     beforeMenuId = menuId
+    beforeMenuParentIds = parentIds
+  }
+    
 
   // 没有菜单id, 清空
-  if (!menuId)
+  if (!menuId) {
     beforeMenuId = ''
+    beforeMenuParentIds = []
+  }
 }
 
 /**

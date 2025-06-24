@@ -96,6 +96,13 @@ export interface Tracker {
    * @returns 构建器
    */
   clearProperties: () => Tracker
+
+  /**
+   *  更新事件名称
+   * @param eventName
+   * @returns
+   */
+  updateEvent: (eventName: `$${string}`) => Tracker
   /**
    * 上报埋点
    * @returns 构建器

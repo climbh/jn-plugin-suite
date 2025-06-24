@@ -61,6 +61,7 @@ export function reportEvent(eventName: `$${string}`, properties = {}): void {
  */
 export function createEventTracker(eventName: `$${string}`, properties: Record<string, any> = {}) {
   const tracking_uuid = crypto.randomUUID()
+  let _eventName = eventName
   let _properties: any = {
     ...properties,
     tracking_uuid,
@@ -95,11 +96,16 @@ export function createEventTracker(eventName: `$${string}`, properties: Record<s
       return tracker
     },
 
+    updateEvent(eventName: `$${string}`) {
+      _eventName = eventName
+      return tracker
+    },
+
     /**
      * 执行上报
      */
     report() {
-      reportEvent(eventName, _properties)
+      reportEvent(_eventName, _properties)
       return tracker
     },
   }

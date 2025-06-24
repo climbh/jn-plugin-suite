@@ -68,3 +68,37 @@ export function findNodeBy(tree: RouteConfig[], value: any, key: keyof RouteConf
   }
   return null
 }
+
+// 深度优先查找，根据path来查找到对应的数据，包括他的父元素们
+/**
+ * 深度优先查找节点及其所有父节点
+ * @param tree 路由树
+ * @param path 目标路径
+ * @param parentNodes 父节点数组(内部递归使用)
+ * @returns 包含目标节点及其所有父节点的数组
+ */
+export function findNodeAndParentsByPath(
+  tree: RouteConfig[],
+  path: string,
+  parentNodes: RouteConfig[] = [],
+): RouteConfig[] | null {
+  for (const node of tree) {
+    // 当前路径匹配
+    if (node.path === path) {
+      return [...parentNodes, node]
+    }
+
+    // 有子节点则继续递归查找
+    if (node.children && node.children.length > 0) {
+      const result = findNodeAndParentsByPath(
+        node.children,
+        path,
+        [...parentNodes, node],
+      )
+      if (result) {
+        return result
+      }
+    }
+  }
+  return null
+}

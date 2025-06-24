@@ -1,15 +1,13 @@
 {
   "name": "@jsjn/monitor-sdk",
   "type": "module",
-  "version": "0.1.2",
+  "version": "0.1.4",
   "description": "金农前端平台监控系统",
   "exports": {
-    "import": "./dist/index.js",
-    "require": "./dist/index.cjs"
+    "import": "./dist/index.js"
   },
-  "main": "dist/index.cjs",
   "module": "dist/index.js",
-  "unpkg": "dist/index.iife.js",
+  "unpkg": "dist/index.global.js",
   "types": "./dist/index.d.ts",
   "files": [
     "README.md",
