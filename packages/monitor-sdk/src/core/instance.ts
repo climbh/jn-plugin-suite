@@ -1,4 +1,5 @@
 import type { App } from 'vue'
+import type { RouteConfig } from '../utils'
 import monitor from 'sa-sdk-javascript'
 
 /**
@@ -64,4 +65,14 @@ export function setRgp(rgpInstance: RGP) {
 
 export function getRgp() {
   return rgp
+}
+
+let routerMapping: Record<string, RouteConfig>
+
+export function setRouterMapping(map: Record<string, RouteConfig>) {
+  routerMapping = map ?? {}
+}
+
+export function getRouterMapping() {
+  return routerMapping
 }

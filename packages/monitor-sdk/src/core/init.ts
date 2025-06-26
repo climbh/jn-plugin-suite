@@ -1,9 +1,10 @@
 import type { App } from 'vue'
+import type { RouteConfig } from '../utils'
 import type { DeepPartial } from '../utils/type'
 import type { MonitorSdkConfig } from './types'
 import { registerPlugin } from '../plugins'
 import { mergeData } from '../utils'
-import { getMonitorInstance, setApp } from './instance'
+import { getMonitorInstance, setApp, setRouterMapping } from './instance'
 import listeningToRoute from './router'
 
 const monitorInstance = getMonitorInstance()
@@ -81,7 +82,8 @@ function initMonitorSdk(
   monitorInstance?.quick('autoTrack')
 }
 
-export function setUp(app: App, options: Partial<InitMonitorSdkOptions>) {
+export function setUp(app: App, options: Partial<InitMonitorSdkOptions>, routerMapping: Record<string, RouteConfig>) {
+  setRouterMapping(routerMapping)
   setApp(app)
   initMonitorSdk(options)
 }

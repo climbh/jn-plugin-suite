@@ -60,11 +60,9 @@ export function reportEvent(eventName: `$${string}`, properties = {}): void {
  * @returns 返回一个对象，支持链式调用
  */
 export function createEventTracker(eventName: `$${string}`, properties: Record<string, any> = {}) {
-  const tracking_uuid = crypto.randomUUID()
   let _eventName = eventName
   let _properties: any = {
     ...properties,
-    tracking_uuid,
   }
   const tracker: Tracker = {
     /**
@@ -81,18 +79,13 @@ export function createEventTracker(eventName: `$${string}`, properties: Record<s
 
     removeProperties(keys: string[]) {
       keys.forEach((key) => {
-        if (key === 'current_process_id') {
-          return
-        }
         delete _properties[key]
       })
       return tracker
     },
 
     clearProperties() {
-      _properties = {
-        tracking_uuid,
-      }
+      _properties = {}
       return tracker
     },
 

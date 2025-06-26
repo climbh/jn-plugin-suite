@@ -79,12 +79,12 @@ export function findNodeBy(tree: RouteConfig[], value: any, key: keyof RouteConf
  */
 export function findNodeAndParentsByPath(
   tree: RouteConfig[],
-  path: string,
+  id: string,
   parentNodes: RouteConfig[] = [],
 ): RouteConfig[] | null {
   for (const node of tree) {
     // 当前路径匹配
-    if (node.path === path) {
+    if (node.meta?.funcId === id) {
       return [...parentNodes, node]
     }
 
@@ -92,7 +92,7 @@ export function findNodeAndParentsByPath(
     if (node.children && node.children.length > 0) {
       const result = findNodeAndParentsByPath(
         node.children,
-        path,
+        id,
         [...parentNodes, node],
       )
       if (result) {
@@ -101,4 +101,51 @@ export function findNodeAndParentsByPath(
     }
   }
   return null
+}
+
+/**
+ * 生成 UUID 的兼容性函数
+ * 优先使用 crypto.randomUUID，如果不支持则使用兼容方案
+ */
+export function generateUUID(): string {
+  // 优先使用 crypto.randomUUID（如果支持）
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return crypto.randomUUID()
+  }
+
+  // 兼容方案：使用 crypto.getRandomValues 生成 UUID v4
+  if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+    const array = new Uint8Array(16)
+    crypto.getRandomValues(array)
+
+    // 设置版本位 (版本 4)
+    array[6] = (array[6] & 0x0F) | 0x40
+    // 设置变体位
+    array[8] = (array[8] & 0x3F) | 0x80
+
+    const hex = Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('')
+    return [
+      hex.slice(0, 8),
+      hex.slice(8, 12),
+      hex.slice(12, 16),
+      hex.slice(16, 20),
+      hex.slice(20, 32),
+    ].join('-')
+  }
+
+  // 最后的降级方案：使用 Math.random（不推荐用于生产环境）
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = Math.random() * 16 | 0
+    const v = c === 'x' ? r : (r & 0x3 | 0x8)
+    return v.toString(16)
+  })
+}
+
+/**
+ * 替换路径
+ * @param path 路径
+ * @returns 替换后的路径
+ */
+export function replacePath(path: string) {
+  return path.replace(/\/merge/, '')
 }

@@ -1,8 +1,8 @@
 import type { RouteConfig } from '../utils'
 import useApp from '../hooks/useApp'
-import { findNodeAndParentsByPath, findNodeBy } from '../utils'
+import { findNodeAndParentsByPath, replacePath } from '../utils'
 import { registerSuperProperties } from './event'
-import { getMonitorInstance } from './instance'
+import { getMonitorInstance, getRouterMapping } from './instance'
 
 const monitorInstance = getMonitorInstance()
 
@@ -36,13 +36,17 @@ let _routerConfigs: RouteConfig[] = []
 let beforeMenuId = ''
 let beforeMenuParentIds: string[] = []
 export function addMenuInfo(path: string) {
-  const { routeConfigs } = useApp().$store.state.appFuncTree
-  if (Object.keys(routeConfigs).length > 0)
-    _routerConfigs = routeConfigs
-  const nodes = findNodeAndParentsByPath(_routerConfigs, path)
-  const node = nodes?.at(-1)
-  const parentIds: string[] = nodes?.slice(0, nodes.length - 1)?.map((i) => (i.meta?.funcId || '') as string) ?? []
-  const menuId = (node?.meta.funcId as string) || ''
+  if (_routerConfigs.length === 0) {
+    _routerConfigs = useApp().$store.state.appFuncTree.routeConfigs
+  }
+  const routerMapping = getRouterMapping()
+  if (!routerMapping || (routerMapping && Object.keys(routerMapping).length === 0))
+    return
+  const _path = replacePath(path)
+  const node = routerMapping[_path] ?? null
+  const parentNodes = node ? findNodeAndParentsByPath(_routerConfigs, node.meta.funcId as string)?.slice(0, -1) : []
+  const menuId = node ? (node.meta.funcId as string) : ''
+  const parentIds: string[] = parentNodes?.map(i => (i.meta?.funcId || '') as string) ?? []
   registerSuperProperties({ $menu_id: menuId })
   registerSuperProperties({ $menu_parentIds: parentIds })
   registerSuperProperties({ $menu_id_before: beforeMenuId })
@@ -53,7 +57,6 @@ export function addMenuInfo(path: string) {
     beforeMenuId = menuId
     beforeMenuParentIds = parentIds
   }
-    
 
   // 没有菜单id, 清空
   if (!menuId) {
