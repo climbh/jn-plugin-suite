@@ -1,9 +1,14 @@
-import pageleave from 'sa-sdk-javascript/dist/web/plugin/pageleave/index.es6.js'
+// import pageleave from 'sa-sdk-javascript/dist/web/plugin/pageleave/index.es6.js'
 import rgp from 'sa-sdk-javascript/dist/web/plugin/register-properties/index.es6.js'
 import { setRgp } from '../core/instance'
 import pageload from './pageload'
+import pageview from './pageview'
+import pageleave from './pageleave'
 
 export function registerPlugin(monitorInstance: any) {
+
+  monitorInstance.use(pageview)
+
   /**
    * 页面加载时长的插件
    * event_duration 为页面的加载时长

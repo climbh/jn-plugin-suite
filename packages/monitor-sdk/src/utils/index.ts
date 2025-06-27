@@ -149,3 +149,31 @@ export function generateUUID(): string {
 export function replacePath(path: string) {
   return path.replace(/\/merge/, '')
 }
+
+/**
+ * 将查询参数转换为 URL 参数
+ * @param query 查询参数
+ * @returns URL 参数
+ */
+export function queryTransform2UrlParams(query: any) {
+  if(Object.keys(query).length === 0) return ''
+  return '?' + Object.entries(query).map(([key, value]) => `${key}=${value}`).join('&')
+}
+
+/**
+ * 获取window对象
+ * @returns 当前窗口
+ */
+export function getWindow() {
+  return window.top ?? window
+}
+
+/**
+ * 获取当前窗口的 origin
+ * @returns 当前窗口的 origin
+ */
+export function getOrigin() {
+  const _window = getWindow()
+  const { origin, pathname } = _window.location
+  return origin + pathname + '#'
+}

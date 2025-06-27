@@ -34,7 +34,7 @@ function initMonitorSdk(
     send_type: 'ajax',
     use_base64: true,
     use_client_time: true,
-    is_track_single_page: true, // 单页应用页面浏览事件采集(url改变就触发)
+    is_track_single_page: false, // 单页应用页面浏览事件采集(url改变就触发)
     use_app_track: true,
     encrypt_cookie: true,
     show_log: true, // 控制台显示数据开
