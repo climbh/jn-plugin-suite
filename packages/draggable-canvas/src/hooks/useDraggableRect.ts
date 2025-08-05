@@ -4,28 +4,28 @@ import { computed, inject, ref } from 'vue'
 import { CanvasItemType } from '../enum'
 import { getUnitByType } from '../utils'
 import usePageSize from './usePageSize'
+import { useRectResize, type ResizeType } from './useRectResize'
 
 export interface UseDraggableRectOptions {
   id: string
   rect: Ref<Rect>
   emitUpdate: (rect: any) => void
   emitDropItem: (id: string, item: any) => void
-  unit?: 'px'
 }
-
-type ResizeType =
-  | 'right-bottom' | 'right-top' | 'left-bottom' | 'left-top'
-  | 'top' | 'bottom' | 'left' | 'right'
 
 export function useDraggableRect(options: UseDraggableRectOptions) {
   const { rootFontSize } = usePageSize()
   const production = inject<Ref<boolean>>('draggableCanvasProduction')!
   const rect = options.rect
   const dragging = ref(false)
-  const resizing = ref(false)
-  const resizeType = ref<ResizeType | null>(null)
   const offset = ref({ x: 0, y: 0 })
-  
+
+  // 使用新的resize hook
+  const { resizing, resizeType, onResizeStart, onResizeEnd } = useRectResize({
+    rect: options.rect,
+    emitUpdate: options.emitUpdate,
+  })
+
   const position = computed(() => ({
     x: rect.value.x,
     y: rect.value.y,
@@ -53,7 +53,7 @@ export function useDraggableRect(options: UseDraggableRectOptions) {
     // 计算边框样式
     const getBorderStyle = () => ({
       border: dragging.value || rect.value.type === CanvasItemType.Default ? '2px dashed #1890ff' : '2px solid #1890ff',
-      borderRadius: '4px',
+      // borderRadius: '4px',
     })
 
     return {
@@ -102,10 +102,7 @@ export function useDraggableRect(options: UseDraggableRectOptions) {
   function onMouseUp() {
     dragging.value = false
     if (resizing.value) {
-      resizing.value = false
-      resizeType.value = null
-      document.removeEventListener('mousemove', onResize)
-      document.removeEventListener('mouseup', onMouseUp)
+      onResizeEnd()
     }
     else {
       document.removeEventListener('mousemove', onDrag)
@@ -113,85 +110,7 @@ export function useDraggableRect(options: UseDraggableRectOptions) {
     }
   }
 
-  // 多方向缩放
-  function onResizeStart(type: ResizeType, e: MouseEvent) {
-    e.stopPropagation()
-    resizing.value = true
-    resizeType.value = type
-    offset.value = {
-      x: e.clientX,
-      y: e.clientY,
-    }
-    document.addEventListener('mousemove', onResize)
-    document.addEventListener('mouseup', onMouseUp)
-  }
 
-  function onResize(e: MouseEvent) {
-    if (!resizing.value || !resizeType.value)
-      return
-    const minW = 40
-    const minH = 40
-    const dx = e.clientX - offset.value.x
-    const dy = e.clientY - offset.value.y
-    let { x, y } = position.value
-    let { width, height } = size.value
-    switch (resizeType.value) {
-      case 'right-bottom':
-        width = Math.max(minW, width + dx)
-        height = Math.max(minH, height + dy)
-        break
-      case 'right-top':
-        width = Math.max(minW, width + dx)
-        if (height - dy >= minH) {
-          y += dy
-          height = height - dy
-        }
-        break
-      case 'left-bottom':
-        if (width - dx >= minW) {
-          x += dx
-          width = width - dx
-        }
-        height = Math.max(minH, height + dy)
-        break
-      case 'left-top':
-        if (width - dx >= minW) {
-          x += dx
-          width = width - dx
-        }
-        if (height - dy >= minH) {
-          y += dy
-          height = height - dy
-        }
-        break
-      case 'top':
-        if (height - dy >= minH) {
-          y += dy
-          height = height - dy
-        }
-        break
-      case 'bottom':
-        height = Math.max(minH, height + dy)
-        break
-      case 'left':
-        if (width - dx >= minW) {
-          x += dx
-          width = width - dx
-        }
-        break
-      case 'right':
-        width = Math.max(minW, width + dx)
-        break
-    }
-    offset.value = { x: e.clientX, y: e.clientY }
-    options.emitUpdate({
-      ...rect.value,
-      x,
-      y,
-      width,
-      height,
-    })
-  }
 
   function onDrop(e: DragEvent) {
     // 支持 type 拖拽，矩形只做接收，type 直接覆盖

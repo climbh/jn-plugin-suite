@@ -133,17 +133,21 @@ export function calculatePixelValue(
   const scaledPixel = pixelValue * ratio
 
   // 登录组件在生产环境下的高度特殊处理
-  if(rect.type === CanvasItemType.Login) {
-    if(production) {
-      if(key === 'width') {
+  if (rect.type === CanvasItemType.Login) {
+    if (production) {
+      if (key === 'width') {
         return SPECIAL_VALUES.AUTO_HEIGHT
       }
     }
-    if(key === 'height') {
+    if (key === 'height') {
       return SPECIAL_VALUES.AUTO_HEIGHT
     }
   }
 
+  // 全屏组件的宽高使用百分比
+  if (rect._prevRect && (key === 'width' || key === 'height')) {
+    return 100
+  }
 
   // 生产环境转换为rem基准值
   if (production) {

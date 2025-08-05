@@ -1,3 +1,5 @@
+import { Rect } from "../types"
+
 /**
  * 深度克隆函数
  * 支持常见对象类型（数组、对象、Date、RegExp、Map、Set等），避免循环引用
@@ -60,4 +62,10 @@ export function deepClone<T>(target: T, map: WeakMap<any, any> = new WeakMap()):
 
   map.set(target, clone)
   return clone
+}
+
+
+// 记录全屏前的矩形信息
+export function isRectFullscreen(rect: Rect): boolean {
+  return rect.x === 0 && rect.y === 0 && rect.width === 100 && rect.height === 100
 }

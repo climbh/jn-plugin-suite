@@ -1,8 +1,6 @@
 <script lang="ts" setup>
 import type { Component } from 'vue'
-import type { Rect } from './types'
-import html2canvas from 'html2canvas'
-import { computed, defineEmits, defineProps, nextTick, onBeforeUnmount, onMounted, provide, ref, watch, watchEffect } from 'vue'
+import { computed, defineEmits, defineProps, nextTick, onBeforeUnmount, onMounted, provide, ref, watch } from 'vue'
 import Background from './components/background/index.vue'
 import ContextMenu from './components/ContextMenu.vue'
 import Login from './components/login/index.vue'
@@ -13,9 +11,10 @@ import { CanvasItemType } from './enum'
 import { useCanvasContextMenu } from './hooks/useCanvasContextMenu'
 import { useCanvasRects } from './hooks/useCanvasRects'
 import { useDrawRect } from './hooks/useDrawRect'
+import { useKeyboard } from './hooks/useKeyboard'
+import type { Rect } from './types'
 import { transformRectsToSize } from './utils'
 import { getRootSize } from './utils/window'
-import { useEventListener } from './hooks/useEventListener'
 
 defineOptions({
   name: 'DraggableCanvas',
@@ -43,6 +42,8 @@ const components = {
   [CanvasItemType.Login]: Login,
 } as Record<any, Component>
 
+const canvasDom = ref<HTMLElement | null>(null)
+
 const production = computed(() => ['production', 'review'].includes(props.mode))
 const canvasSize = ref<{ width: number, height: number }>({ width: 0, height: 0 })
 provide('draggableCanvasParentSize', canvasSize)
@@ -62,127 +63,33 @@ const {
   production,
 })
 
-const canvasStyle = computed(() => ({
-  position: 'relative' as const,
-  // width: `${canvasSize.value.width || 0}px`,
-  // height: `${canvasSize.value.height || 0}px`,
-  background: 'transparent',
-  // border: '1px solid #e5e7eb',
-  // marginBottom: '16px',
-}))
-
 // 右键菜单 hook
-const { contextMenuState, openContextMenu, closeContextMenu } = useCanvasContextMenu()
-const canvasDom = ref<HTMLElement | null>(null)
-const menuRef = ref<HTMLElement | null>(null)
+const { contextMenuState, onCanvasContextMenu, handleMenuAction } = useCanvasContextMenu({
+  canvasDom,
+  rects,
+  deleteRect,
+  fullscreenRect,
+  restoreRect
+})
 
-// 记录全屏前的矩形信息
-function isRectFullscreen(rect: Rect): boolean {
-  return rect.x === 0 && rect.y === 0 && rect.width === 100 && rect.height === 100
-}
-
-function handleMenuAction(action: string) {
-  const id = contextMenuState.value.targetId
-  if (!id)
-    return
-  switch (action) {
-    case 'up':
-      {
-        // 如果最后一个矩形是全屏的，则不进行操作
-        if (rects.value[0]?._prevRect)
-          return
-        const idx = rects.value.findIndex(r => r.id === id)
-        if (idx !== -1) {
-          const rect = rects.value[idx]
-          rects.value.splice(idx, 1)
-          rects.value.splice(idx - 1, 0, rect)
-        }
-      }
-      break
-    case 'down':
-      {
-        const idx = rects.value.findIndex(r => r.id === id)
-        if (idx !== -1 && idx < rects.value.length - 1) {
-          const rect = rects.value[idx]
-          rects.value.splice(idx, 1)
-          rects.value.splice(idx + 1, 0, rect)
-        }
-      }
-      break
-    case 'top':
-      {
-        const idx = rects.value.findIndex(r => r.id === id)
-        if (idx !== -1) {
-          const rect = rects.value[idx]
-          rects.value.splice(idx, 1)
-          rects.value.push(rect)
-        }
-      }
-      break
-    case 'bottom':
-      {
-        // 如果最后一个矩形是全屏的，则不进行操作
-        if (rects.value[0]?._prevRect)
-          return
-        const idx = rects.value.findIndex(r => r.id === id)
-        if (idx !== -1) {
-          const rect = rects.value[idx]
-          rects.value.splice(idx, 1)
-          rects.value.unshift(rect)
-        }
-      }
-      break
-    case 'delete':
-      deleteRect(id)
-      break
-    case 'fullscreen':
-      if (!contextMenuState.value.fullscreen) {
-        if (rects.value.some(r => r._prevRect) && !isRectFullscreen(rects.value.find(r => r.id === id)!)) {
-          closeContextMenu()
-          return
-        }
-        handleMenuAction('bottom')
-        fullscreenRect(id)
-      }
-      else {
-        restoreRect(id)
-      }
-      break
-    case 'cancel':
-      closeContextMenu()
-      break
-  }
-  closeContextMenu()
-}
-
-// 键盘删除
-function onKeydown(e: KeyboardEvent) {
-  // 有聚焦元素，则不进行删除
-  if(isFocusEvent.value) return
-  if (['Delete', 'Backspace'].includes(e.key) && selectedRectId.value) {
-    const idx = rects.value.findIndex(r => r.id === selectedRectId.value)
-    if (idx !== -1) {
-      rects.value.splice(idx, 1)
-      selectedRectId.value = null
-    }
-  }
-}
-
-const { isFocusEvent } = useEventListener()
-
+// 键盘事件
+useKeyboard({
+  rects,
+  selectedRectId,
+  deleteRect,
+})
 
 onMounted(() => {
   updateCanvasSize()
   window.addEventListener('resize', updateCanvasSize)
   window.addEventListener('fullscreenchange', updateCanvasSize)
-  window.addEventListener('keydown', onKeydown)
 })
 onBeforeUnmount(() => {
   window.removeEventListener('resize', updateCanvasSize)
   window.removeEventListener('fullscreenchange', updateCanvasSize)
-  window.removeEventListener('keydown', onKeydown)
 })
 
+// 矩形双击事件
 function onRectClick(id: string) {
   const rect = rects.value.find(r => r.id === id)
   if (rect && !rect._prevRect) {
@@ -194,6 +101,7 @@ function onRectClick(id: string) {
   }
 }
 
+// 画布点击事件
 function onCanvasClick(e: MouseEvent) {
   // 只有点击画布空白处才取消选中
   if (e.target === canvasDom.value) {
@@ -201,57 +109,56 @@ function onCanvasClick(e: MouseEvent) {
   }
 }
 
-// ====== 拖拽绘制矩形相关逻辑 ======
-const { isDrawing, previewRect, onMouseDown, bindCanvasRef } = useDrawRect(50, 50, {
-  production,
-})
-
-watch(() => props.initialRects, () => {
-  rects.value = props.initialRects
-  updateCanvasSize()
-}, { immediate: true })
-
-watch(canvasDom, (el) => {
-  bindCanvasRef(el)
-})
-
-let lastPreviewRect: { x: number, y: number, width: number, height: number } | null = null
-
-watch(previewRect, (val) => {
-  if (val)
-    lastPreviewRect = { ...val }
-})
-
-watch(isDrawing, (drawing, prev) => {
-  if (prev && !drawing && lastPreviewRect) {
-    const { x, y, width, height } = lastPreviewRect
-    if (width >= 50 && height >= 50) {
-      const rect: Rect = {
-        id: String(Date.now()),
-        x,
-        y,
-        width,
-        height,
-        type: CanvasItemType.Default,
-        originalPageSize: {
-          width: canvasSize.value.width,
-          height: canvasSize.value.height,
-          rootSize: getRootSize(),
-        },
-      }
-      rects.value.push(rect)
-      emitAddRect(rect)
-    }
-    lastPreviewRect = null
+// 矩形绘制完成事件
+function onDrawComplete(rectData: { x: number, y: number, width: number, height: number }) {
+  const rect: Rect = {
+    id: String(Date.now()),
+    x: rectData.x,
+    y: rectData.y,
+    width: rectData.width,
+    height: rectData.height,
+    type: CanvasItemType.Default,
+    originalPageSize: {
+      width: canvasSize.value.width,
+      height: canvasSize.value.height,
+      rootSize: getRootSize(),
+    },
   }
+  rects.value.push(rect)
+  emitAddRect(rect)
+}
+
+const { previewRect, onMouseDown, bindCanvasRef } = useDrawRect(50, 50, {
+  production,
+  onDrawComplete,
 })
 
+// 初始化矩形
+watch(
+  () => props.initialRects, 
+  () => {
+    rects.value = props.initialRects
+    updateCanvasSize()
+  }, 
+  { immediate: true }
+)
+
+// 绑定画布 ref
+watch(
+  canvasDom, 
+  (el) => {
+    bindCanvasRef(el)
+  }
+)
+
+// 更新矩形内容
 function updateRectContent(id: string, content: string) {
   const idx = rects.value.findIndex(r => r.id === id)
   if (idx !== -1)
     rects.value[idx].content = content
 }
 
+// 更新登录框大小
 function updateLoginSizeHandle(id: string, { width, height }: { width: number, height: number }) {
   const idx = rects.value.findIndex(r => r.id === id)
   if (idx !== -1) {
@@ -260,31 +167,35 @@ function updateLoginSizeHandle(id: string, { width, height }: { width: number, h
   }
 }
 
+// 拖拽项事件
 function handleDropItem(id: string, item: any) {
   emit('dropItem', id, item)
 }
 
-watch(rects, (val) => {
-  if (props.mode !== 'create')
-    return
-  emit('update:rects', val)
-}, { deep: true })
+// 更新矩形
+watch(
+  rects, 
+  (val) => {
+    if (props.mode !== 'create') {
+      return
+    }
+    emit('update:rects', val)
+  }, 
+  { deep: true }
+)
 
-// 监听画布尺寸变化，自适应模式下重算渲染
-watch(canvasSize, () => {
-
-})
 
 // 新增 addRect/updateRect 事件输出
 function emitAddRect(rect: Rect) {
   emit('addRect', rect)
 }
 
-// 渲染时转换为 px
+
 const renderRects = computed(() => {
   return rects.value
 })
 
+// 更新画布尺寸
 function updateCanvasSize() {
   if (canvasDom.value) {
     nextTick(() => {
@@ -297,59 +208,15 @@ function updateCanvasSize() {
         width: canvasSize.value.width,
         height: canvasSize.value.height,
       }, production.value)
-      
     })
   }
 }
-
-function onCanvasContextMenu(e: MouseEvent) {
-  if (!canvasDom.value)
-    return
-  const rect = canvasDom.value.getBoundingClientRect()
-  const x = e.clientX - rect.left + canvasDom.value.scrollLeft
-  const y = e.clientY - rect.top + canvasDom.value.scrollTop
-
-  // 逆序遍历，优先顶层（后渲染）矩形
-  for (let i = rects.value.length - 1; i >= 0; i--) {
-    const r = rects.value[i]
-    // 计算矩形的实际像素位置
-    const rx = r.x as number
-    const ry = r.y as number
-    const rw = r.width as number
-    const rh = r.height as number
-
-    if (x >= rx && x <= rx + rw && y >= ry && y <= ry + rh) {
-      openContextMenu(x, y, r.id, r)
-      return
-    }
-  }
-  // 空白处右键（可选）
-  // openContextMenu(x, y, null)
-}
-
-function exportCanvas() {
-  return new Promise((resolve) => {
-    html2canvas(canvasDom.value!, {
-      width: canvasSize.value.width,
-      height: canvasSize.value.height,
-      windowWidth: canvasSize.value.width,
-      windowHeight: canvasSize.value.height,
-    }).then((canvas: any) => {
-      resolve(canvas)
-    })
-  })
-}
-
-defineExpose({
-  exportCanvas,
-})
 </script>
 
 <template>
   <div
     ref="canvasDom"
     class="canvas"
-    :style="canvasStyle"
     @mousedown.self="onMouseDown"
     @contextmenu.prevent="onCanvasContextMenu"
     @click="onCanvasClick"
@@ -397,9 +264,11 @@ defineExpose({
 <style scoped>
 .canvas {
   overflow: hidden;
+  position: relative;
   box-sizing: border-box;
   width: 100%;
   height: 100%;
+  background: transparent;
 }
 .material-bar {
   margin-top: 8px;
