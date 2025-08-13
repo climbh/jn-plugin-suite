@@ -1,5 +1,7 @@
 import { reportEvent } from '../core'
+import { getWindow } from '../utils'
 
+const _W = getWindow()
 /**
  * 自定义页面加载性能插件保证更多的数据上报
  */
@@ -8,7 +10,10 @@ export default {
   plugin_name: 'pageload',
   init(sd: any) {
     sd.ee.sdk.on('ready', () => {
-      collectPagePerformance()
+      // 只有登录页才进行
+      if (_W.location.href.includes('login')) {
+        collectPagePerformance()
+      }
     })
   },
 }
@@ -35,16 +40,16 @@ export function collectPagePerformance() {
     const request = nav.responseEnd - nav.requestStart
 
     // 6. DNS 查询耗时
-    const dns = nav.domainLookupEnd - nav.domainLookupStart
+    // const dns = nav.domainLookupEnd - nav.domainLookupStart
 
     // 7. TCP 连接耗时
-    const tcp = nav.connectEnd - nav.connectStart
+    // const tcp = nav.connectEnd - nav.connectStart
 
     // 8. 重定向耗时
-    const redirect = nav.redirectEnd - nav.redirectStart
+    // const redirect = nav.redirectEnd - nav.redirectStart
 
     // 9. 卸载页面耗时
-    const unload = nav.unloadEventEnd - nav.unloadEventStart
+    // const unload = nav.unloadEventEnd - nav.unloadEventStart
 
     // 10. DOM 解析耗时
     const domParse = nav.domComplete - nav.domInteractive

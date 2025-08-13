@@ -18,13 +18,13 @@ export const addLogin = (userId: string): void => monitorInstance?.login(userId)
  * @description 取消用户关联, 在用户退出登录后调用
  */
 export function loginOut() {
-  monitorInstance?.logout()
   registerSuperProperties({
     $institu_id: '',
     $user_id: '',
     $authorization: '',
     $menu_id: '',
   })
+  monitorInstance?.logout()
 }
 
 /**
@@ -70,19 +70,20 @@ export function addMenuInfo(path: string) {
  */
 export function loginHandle(userId?: string) {
   const $store = useApp().$store
-  const { instituInfo, loginInfo } = $store.state.currentUserInfo
+  const { instituInfo, loginInfo, departList } = $store.state.currentUserInfo
   const { access_token } = $store.state.loginInfo
   const _userId = userId || loginInfo.userId
-
   if (!_userId)
     return
 
-  addLogin(_userId)
   registerSuperProperties({
     $institu_id: instituInfo.instituId,
     $user_id: _userId,
     $authorization: access_token,
+    $departIds: departList.map(i => i.id).join(','),
+    $departNames: departList.map(i => i.name).join(','),
   })
+  addLogin(_userId)
 }
 
 /**

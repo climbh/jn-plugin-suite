@@ -19,6 +19,7 @@ export function collectPageView() {
   const router = useApp().$router
   if(!router) return
   router.afterEach((to, from) => {
+    if(from?.path === '' || from?.path === '/') return
     if(from.path !== to.path) {
       reportEvent('$pageview', {
         $referrer: getOrigin() + from.path + `${queryTransform2UrlParams(from.query)}`,
