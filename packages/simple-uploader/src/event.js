@@ -24,7 +24,7 @@ const event = {
   off(name, func) {
     if (!this._eventData)
       this._eventData = {}
-    if (!this._eventData[name] || !this._eventData[name].length)
+    if (!this._eventData[name] || this._eventData[name].length === 0)
       return
     if (func) {
       each(this._eventData[name], function (fuc, i) {

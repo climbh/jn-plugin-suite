@@ -1,10 +1,10 @@
-import chokidar from 'chokidar'
+import { watch } from 'chokidar'
 
 export function watchFiles(
   watchPath: string,
   onChange: (file: string) => void,
 ) {
-  const watcher = chokidar.watch(watchPath, {
+  const watcher = watch(watchPath, {
     persistent: true,
     ignoreInitial: false,
     followSymlinks: false,

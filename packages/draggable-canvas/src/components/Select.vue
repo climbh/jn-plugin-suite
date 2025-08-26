@@ -49,7 +49,7 @@ const displayValue = computed(() => {
 })
 
 const sizeClass = computed(() => {
-  return `select--${props.size || 'medium'}`
+  return `select--${props.size === undefined ? 'medium' : props.size}`
 })
 
 function fontFamilyClass(val: string | number) {

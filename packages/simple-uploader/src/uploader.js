@@ -198,7 +198,7 @@ utils.extend(Uploader.prototype, {
     // Some confusion in different versions of Firefox
     var relativePath = file.relativePath || file.webkitRelativePath || file.fileName || file.name
     /* istanbul ignore next */
-    return file.size + '-' + relativePath.replace(/[^0-9a-zA-Z_-]/img, '')
+    return file.size + '-' + relativePath.replaceAll(/[^0-9a-zA-Z_-]/img, '')
   },
 
   getFromUniqueIdentifier: function (uniqueIdentifier) {
@@ -225,7 +225,7 @@ utils.extend(Uploader.prototype, {
           // waiting for current file's first chunk response
           return
         }
-        if (file.chunks.length && file.chunks[0].status() === pendingStatus) {
+        if (file.chunks.length > 0 && file.chunks[0].status() === pendingStatus) {
           file.chunks[0].send()
           found = true
           return false
@@ -275,7 +275,7 @@ utils.extend(Uploader.prototype, {
     // should check files now
     // if now files in list
     // should not trigger complete event
-    if (!outstanding && !preventEvents && this.files.length) {
+    if (!outstanding && !preventEvents && this.files.length > 0) {
       // All chunks have been uploaded, complete
       this._triggerAsync('complete')
     }
@@ -340,7 +340,7 @@ utils.extend(Uploader.prototype, {
    * be selected (Chrome only).
    */
   assignBrowse: function (domNodes, isDirectory, singleFile, attributes) {
-    if (typeof domNodes.length === 'undefined') {
+    if (domNodes.length === 'undefined') {
       domNodes = [domNodes]
     }
 
@@ -359,12 +359,12 @@ utils.extend(Uploader.prototype, {
           height: '1px'
         })
         // for opera 12 browser, input must be assigned to a document
-        domNode.appendChild(input)
+        domNode.append(input)
         // https://developer.mozilla.org/en/using_files_from_web_applications)
         // event listener is executed two times
         // first one - original mouse click event
         // second - input.click(), input is inside domNode
-        domNode.addEventListener('click', function (e) {
+        domNode.addEventListener('click', function () {
           if (domNode.tagName.toLowerCase() === 'label') {
             return
           }
@@ -429,7 +429,7 @@ utils.extend(Uploader.prototype, {
     })
     function readDirectory (reader) {
       reader.readEntries(function (entries) {
-        if (entries.length) {
+        if (entries.length > 0) {
           queue += entries.length
           utils.each(entries, function (entry) {
             if (entry.isFile) {
@@ -449,7 +449,7 @@ utils.extend(Uploader.prototype, {
     }
     function fileReadSuccess (file, fullPath) {
       // relative path should not start with "/"
-      file.relativePath = fullPath.substring(1)
+      file.relativePath = fullPath.slice(1)
       files.push(file)
       decrement()
     }

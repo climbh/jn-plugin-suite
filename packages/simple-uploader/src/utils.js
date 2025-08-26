@@ -120,7 +120,7 @@ var utils = {
 
     for (; i < length; i++) {
       // 只处理非空参数
-      if ((options = arguments[i]) != null) {
+      if ((options = arguments[i]) !== null) {
         for (name in options) {
           src = target[name]
           copy = options[name]
@@ -153,9 +153,9 @@ var utils = {
       return (size / 1024.0).toFixed(0) + ' KB'
     } else if (size < 1024 * 1024 * 1024) {
       return (size / 1024.0 / 1024.0).toFixed(1) + ' MB'
-    } else {
-      return (size / 1024.0 / 1024.0 / 1024.0).toFixed(1) + ' GB'
     }
+      return (size / 1024.0 / 1024.0 / 1024.0).toFixed(1) + ' GB'
+    
   },
 
   defineNonEnumerable: function (target, key, value) {

@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import type { Component } from 'vue'
+import type { Rect } from './types'
 import { computed, defineEmits, defineProps, nextTick, onBeforeUnmount, onMounted, provide, ref, watch } from 'vue'
 import Background from './components/background/index.vue'
 import ContextMenu from './components/ContextMenu.vue'
@@ -12,7 +13,6 @@ import { useCanvasContextMenu } from './hooks/useCanvasContextMenu'
 import { useCanvasRects } from './hooks/useCanvasRects'
 import { useDrawRect } from './hooks/useDrawRect'
 import { useKeyboard } from './hooks/useKeyboard'
-import type { Rect } from './types'
 import { transformRectsToSize } from './utils'
 import { getRootSize } from './utils/window'
 
@@ -69,7 +69,7 @@ const { contextMenuState, onCanvasContextMenu, handleMenuAction } = useCanvasCon
   rects,
   deleteRect,
   fullscreenRect,
-  restoreRect
+  restoreRect,
 })
 
 // 键盘事件
@@ -135,20 +135,20 @@ const { previewRect, onMouseDown, bindCanvasRef } = useDrawRect(50, 50, {
 
 // 初始化矩形
 watch(
-  () => props.initialRects, 
+  () => props.initialRects,
   () => {
     rects.value = props.initialRects
     updateCanvasSize()
-  }, 
-  { immediate: true }
+  },
+  { immediate: true },
 )
 
 // 绑定画布 ref
 watch(
-  canvasDom, 
+  canvasDom,
   (el) => {
     bindCanvasRef(el)
-  }
+  },
 )
 
 // 更新矩形内容
@@ -174,22 +174,20 @@ function handleDropItem(id: string, item: any) {
 
 // 更新矩形
 watch(
-  rects, 
+  rects,
   (val) => {
     if (props.mode !== 'create') {
       return
     }
     emit('update:rects', val)
-  }, 
-  { deep: true }
+  },
+  { deep: true },
 )
-
 
 // 新增 addRect/updateRect 事件输出
 function emitAddRect(rect: Rect) {
   emit('addRect', rect)
 }
-
 
 const renderRects = computed(() => {
   return rects.value

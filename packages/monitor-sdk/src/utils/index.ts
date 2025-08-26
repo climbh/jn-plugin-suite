@@ -1,5 +1,4 @@
 import type { _RouteRecordBase, RouteComponent, RouteMeta, RouteRecordNormalized } from 'vue-router'
-import useApp from '../hooks/useApp'
 
 /**
  * 深度合并对象

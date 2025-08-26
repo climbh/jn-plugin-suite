@@ -4,7 +4,7 @@ import { computed, inject, ref } from 'vue'
 import { CanvasItemType } from '../enum'
 import { getUnitByType } from '../utils'
 import usePageSize from './usePageSize'
-import { useRectResize, type ResizeType } from './useRectResize'
+import { useRectResize } from './useRectResize'
 
 export interface UseDraggableRectOptions {
   id: string
@@ -21,7 +21,7 @@ export function useDraggableRect(options: UseDraggableRectOptions) {
   const offset = ref({ x: 0, y: 0 })
 
   // 使用新的resize hook
-  const { resizing, resizeType, onResizeStart, onResizeEnd } = useRectResize({
+  const { resizing, onResizeStart, onResizeEnd } = useRectResize({
     rect: options.rect,
     emitUpdate: options.emitUpdate,
   })
@@ -110,8 +110,6 @@ export function useDraggableRect(options: UseDraggableRectOptions) {
     }
   }
 
-
-
   function onDrop(e: DragEvent) {
     // 支持 type 拖拽，矩形只做接收，type 直接覆盖
     const type = Number(e.dataTransfer?.getData('type'))
@@ -121,35 +119,11 @@ export function useDraggableRect(options: UseDraggableRectOptions) {
     })
   }
 
-  function onItemDrag(_item: any, _e: DragEvent) {
-    // 可扩展：支持矩形内元素拖动
-  }
-  function onItemDrop(_item: any, _e: DragEvent) {
-    // 可扩展：支持矩形内元素拖动
-  }
-
-  // 判断是输入框
-  function isInputElement(el: EventTarget | null): boolean {
-    if (!(el instanceof HTMLElement))
-      return false
-    if (
-      el.tagName === 'INPUT'
-      || el.tagName === 'TEXTAREA'
-      || el.isContentEditable
-    ) {
-      return true
-    }
-    // 可递归查找父节点
-    if (el.parentElement)
-      return isInputElement(el.parentElement)
-    return false
-  }
-
   return {
     dragging,
     resizing,
-    size,
     position,
+    size,
     rectStyle,
     onMouseDown,
     onResizeStart,
@@ -157,4 +131,29 @@ export function useDraggableRect(options: UseDraggableRectOptions) {
     onItemDrag,
     onItemDrop,
   }
+}
+
+function onItemDrag(_item: any, _e: DragEvent) {
+  // 可扩展：支持矩形内元素拖动
+}
+
+function onItemDrop(_item: any, _e: DragEvent) {
+  // 可扩展：支持矩形内元素拖动
+}
+
+// 判断是输入框
+function isInputElement(el: EventTarget | null): boolean {
+  if ((el instanceof HTMLElement) === false)
+    return false
+  if (
+    el.tagName === 'INPUT'
+    || el.tagName === 'TEXTAREA'
+    || el.isContentEditable
+  ) {
+    return true
+  }
+  // 可递归查找父节点
+  if (el.parentElement)
+    return isInputElement(el.parentElement)
+  return false
 }

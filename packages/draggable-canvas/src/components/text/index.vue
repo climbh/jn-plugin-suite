@@ -2,13 +2,13 @@
 import type { ComputedRef } from 'vue'
 import type { Rect } from '../../types'
 import { Icon } from '@iconify/vue'
-import Color from '@tiptap/extension-color'
-import FontFamily from '@tiptap/extension-font-family'
-import Highlight from '@tiptap/extension-highlight'
-import Placeholder from '@tiptap/extension-placeholder'
-import TextAlign from '@tiptap/extension-text-align'
-import TextStyle from '@tiptap/extension-text-style'
-import StarterKit from '@tiptap/starter-kit'
+import { Color } from '@tiptap/extension-color'
+import { FontFamily } from '@tiptap/extension-font-family'
+import { Highlight } from '@tiptap/extension-highlight'
+import { Placeholder } from '@tiptap/extension-placeholder'
+import { TextAlign } from '@tiptap/extension-text-align'
+import { TextStyle } from '@tiptap/extension-text-style'
+import { StarterKit } from '@tiptap/starter-kit'
 import { BubbleMenu, EditorContent, useEditor } from '@tiptap/vue-3'
 import { defineEmits, defineProps, inject, onUnmounted } from 'vue'
 import { convertStylePxToRem } from '../../utils'
@@ -62,7 +62,7 @@ function getCurrentFontSize(): number {
   if (!editor.value)
     return 16
   const attrs = editor.value.getAttributes('textStyle')
-  const size = attrs.fontSize ? Number.parseInt(String(attrs.fontSize).replace('px', '')) : 16
+  const size = attrs.fontSize ? Number.parseInt(String(attrs.fontSize).replace('px', ''), 10) : 16
   return fontSizes.includes(size) ? size : 16
 }
 
@@ -112,7 +112,7 @@ const fontFamilies = [
   { label: 'Book Antiqua', value: 'book antiqua,palatino' },
 ]
 
-function changeFontFamily(val) {
+function changeFontFamily(val: any) {
   if (!editor.value)
     return
   const font = val
@@ -158,7 +158,7 @@ function changeFontFamily(val) {
               :value="getCurrentFontSize()"
               :options="fontSizeMap"
               :searchable="true"
-              @change="(val) => changeFontSize('size', val)"
+              @change="(val) => changeFontSize('size', Number(val))"
             />
             <button :class="{ 'is-active': editor?.isActive({ textAlign: 'left' }) }" @click="editor && editor.chain().focus().setTextAlign('left').run()">
               <Icon icon="fluent:align-left-28-filled" width="24" height="24" />

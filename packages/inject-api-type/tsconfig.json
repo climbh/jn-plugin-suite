@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "ES2016",
+    "target": "esnext",
     "module": "commonjs",
     "strict": true, /* Specify what module code is generated. */
     "esModuleInterop": true

@@ -21,9 +21,9 @@ function File (uploader, file, parent) {
       this.file = null
       this.path = file
       if (this.parent.path) {
-        file = file.substr(this.parent.path.length)
+        file = file.slice(this.parent.path.length)
       }
-      this.name = file.charAt(file.length - 1) === '/' ? file.substr(0, file.length - 1) : file
+      this.name = file.charAt(file.length - 1) === '/' ? file.slice(0, file.length - 1) : file
     } else {
       this.file = file
       this.fileType = this.file.type
@@ -52,7 +52,7 @@ utils.extend(File.prototype, {
 
   _parseFile: function () {
     var ppaths = parsePaths(this.relativePath)
-    if (ppaths.length) {
+    if (ppaths.length > 0) {
       var filePaths = this.uploader.filePaths
       utils.each(ppaths, function (path, i) {
         var folderFile = filePaths[path]
@@ -235,7 +235,7 @@ utils.extend(File.prototype, {
       index = parent._errorFiles.indexOf(this)
       parent._errorFiles.splice(index, 1)
       parent.allError = false
-      if (!parent._errorFiles.length) {
+      if (parent._errorFiles.length === 0) {
         parent.error = false
       }
       parent = parent.parent
@@ -460,7 +460,7 @@ utils.extend(File.prototype, {
 
   removeFile: function (file) {
     if (file.isFolder) {
-      while (file.files.length) {
+      while (file.files.length > 0) {
         var f = file.files[file.files.length - 1]
         this._removeFile(f)
       }
@@ -500,7 +500,7 @@ utils.extend(File.prototype, {
         return false
       }
     }, this)
-    if (!this.isRoot && this.isFolder && !this.files.length) {
+    if (!this.isRoot && this.isFolder && this.files.length === 0) {
       this.parent._removeFile(this)
       this.uploader._delFilePath(this)
     }
@@ -518,7 +518,7 @@ utils.extend(File.prototype, {
     if (this.isFolder) {
       return ''
     }
-    return this.name.substr((~-this.name.lastIndexOf('.') >>> 0) + 2).toLowerCase()
+    return this.name.slice((~-this.name.lastIndexOf('.') >>> 0) + 2).toLowerCase()
   }
 
 })
@@ -532,7 +532,7 @@ function parsePaths (path) {
   var i = 1
   paths.splice(len - 1, 1)
   len--
-  if (paths.length) {
+  if (paths.length > 0) {
     while (i <= len) {
       ret.push(paths.slice(0, i++).join('/') + '/')
     }

@@ -1,29 +1,9 @@
 {
   "name": "@jsjn/simple-uploader.js",
-  "version": "0.6.0",
+  "version": "0.1.0",
   "description": "Uploader library implements html5 file upload and provides multiple simultaneous, stable, fault tolerant and resumable uploads",
-  "author": "dolymood <dolymood@gmail.com>",
+  "author": "climbh <climbh.me@gmail.com>",
   "license": "MIT",
-  "homepage": "https://github.com/simple-uploader/Uploader",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/simple-uploader/Uploader.git"
-  },
-  "bugs": "https://github.com/simple-uploader/Uploader/issues",
-  "keywords": [
-    "simple-uploader",
-    "simple-uploader.js",
-    "uploader",
-    "uploader.js",
-    "resumable.js",
-    "flow.js",
-    "file upload",
-    "resumable upload",
-    "chunk upload",
-    "html5 upload",
-    "javascript upload",
-    "upload"
-  ],
   "type": "module",
   "module": "dist/uploader.js",
   "exports": {
@@ -39,16 +19,13 @@
     "test:unit": "karma start",
     "test:cover": "karma start --coverage",
     "test:ci": "npm run test:cover",
-    "release": "npm run build && npm publish"
+    "release": "npm run build && npm publish",
+    "lint": "oxlint --fix --fix-suggestions --fix-dangerously"
   },
   "devDependencies": {
     "tsdown": "^0.14.1",
     "typescript": "^5.0.0",
     "codecov": "^3.6.5",
-    "eslint": "^4.2.0",
-    "eslint-config-standard": "^6.1.0",
-    "eslint-plugin-promise": "^3.5.0",
-    "eslint-plugin-standard": "^3.0.1",
     "jasmine": "^2.6.0",
     "jasmine-core": "^2.6.4",
     "karma": "^1.7.0",
@@ -60,5 +37,8 @@
     "karma-phantomjs-launcher": "^1.0.4",
     "karma-sauce-launcher": "^1.1.0",
     "sinon": "1.7.3"
+  },
+  "publishConfig": {
+    "registry": "http://172.31.71.159/repository/npm-jsjngf/"
   }
 }

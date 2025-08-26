@@ -1,6 +1,5 @@
 import type { Rect } from '../types'
 import { cloneDeep } from 'lodash-es'
-import { inject, type Ref } from 'vue'
 import { CanvasItemType } from '../enum'
 import usePageSize from '../hooks/usePageSize'
 import { getRootSize } from './window'
@@ -133,15 +132,11 @@ export function calculatePixelValue(
   const scaledPixel = pixelValue * ratio
 
   // 登录组件在生产环境下的高度特殊处理
-  if (rect.type === CanvasItemType.Login) {
-    if (production) {
-      if (key === 'width') {
-        return SPECIAL_VALUES.AUTO_HEIGHT
-      }
-    }
-    if (key === 'height') {
+  if (rect.type === CanvasItemType.Login && production) {
+    if(key === 'width') {
       return SPECIAL_VALUES.AUTO_HEIGHT
     }
+    return SPECIAL_VALUES.AUTO_HEIGHT
   }
 
   // 全屏组件的宽高使用百分比

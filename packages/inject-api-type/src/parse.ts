@@ -27,8 +27,8 @@ export function parseFile(filePath: string) {
 
           // 提取 name 和 api 的值
           if (nameProperty && apiProperty && nameProperty instanceof PropertyAssignment && apiProperty instanceof PropertyAssignment) {
-            const name = nameProperty.getInitializer()?.getText().replace(/['"]/g, '')! // 去除引号
-            const api = apiProperty.getInitializer()?.getText().replace(/['"]/g, '')! // 去除引号
+            const name = nameProperty.getInitializer()?.getText().replaceAll(/['"]/g, '') || '' // 去除引号
+            const api = apiProperty.getInitializer()?.getText().replaceAll(/['"]/g, '') || '' // 去除引号
             // 提取 name 字段上方的注释
             const comment = nameProperty.getLeadingCommentRanges().map(range => range.getText().trim()).join('\n')?.replaceAll('//', '').trim()
             result.push({ name, api, comment })

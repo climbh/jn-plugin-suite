@@ -31,12 +31,14 @@ const offsetMin = 12
 const x = ref(window.innerWidth - btnSize - offsetMin)
 const y = ref(100)
 const dragging = ref(false)
-const justDragged = ref(false)
+// const justDragged = ref(false)
 const start = { x: 0, y: 0, mouseX: 0, mouseY: 0 }
 const windowW = ref(window.innerWidth)
 const windowH = ref(window.innerHeight)
 
 const edge = ref<'left' | 'right' | 'top' | 'bottom'>('right')
+
+const showContent = ref(false)
 
 const mouseDownPos = { x: 0, y: 0 }
 function onMouseDown(e: MouseEvent) {
@@ -129,12 +131,11 @@ const btnStyle = computed(() => ({
   transition: dragging.value ? 'none' : 'left 0.2s, top 0.2s',
 }))
 
-const showContent = ref(false)
-function onBtnClick() {
-  if (dragging.value || justDragged.value)
-    return
-  showContent.value = true
-}
+// function onBtnClick() {
+//   if (dragging.value || justDragged.value)
+//     return
+//   showContent.value = true
+// }
 function onGlobalClick() {
   showContent.value = false
 }
@@ -143,7 +144,8 @@ function onGlobalClick() {
 const contentWidth = 260
 const contentHeight = 140
 const contentStyle = computed(() => {
-  let left = 0; let top = 0
+  let left = 0
+  let top = 0
   if (edge.value === 'right') {
     left = x.value + btnSize
     top = y.value
@@ -256,12 +258,6 @@ function onDragStart(e: DragEvent, comp: any) {
 </template>
 
 <style scoped>
-.edge-popup-btn {
-  /* 视觉样式已在 btnStyle 里 */
-}
-.popup-content {
-  /* 视觉样式已在 contentStyle 里 */
-}
 .slide-left-enter-active, .slide-left-leave-active {
   transition: transform 0.3s, opacity 0.3s;
 }

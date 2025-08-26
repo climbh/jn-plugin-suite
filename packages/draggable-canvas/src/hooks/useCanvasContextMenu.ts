@@ -1,15 +1,15 @@
-import { computed, onMounted, onUnmounted, Ref, ref } from 'vue'
-import { Rect } from '../types'
+import type { Ref } from 'vue'
+import type { Rect } from '../types'
+import { onMounted, onUnmounted, ref } from 'vue'
 import { isRectFullscreen } from '../utils/utils'
 
 export function useCanvasContextMenu(props: {
-  canvasDom: Ref<HTMLElement | null>,
-  rects: Ref<Rect[]>,
-  deleteRect: (id: string) => void,
-  fullscreenRect: (id: string) => void,
-  restoreRect: (id: string) => void,
+  canvasDom: Ref<HTMLElement | null>
+  rects: Ref<Rect[]>
+  deleteRect: (id: string) => void
+  fullscreenRect: (id: string) => void
+  restoreRect: (id: string) => void
 }) {
-
   const contextMenuState = ref({
     visible: false,
     x: 0,
@@ -114,16 +114,16 @@ export function useCanvasContextMenu(props: {
         props.deleteRect(id)
         break
       case 'fullscreen':
-        if (!contextMenuState.value.fullscreen) {
+        if (contextMenuState.value.fullscreen) {
+          props.restoreRect(id)
+        }
+        else {
           if (rects.value.some(r => r._prevRect) && !isRectFullscreen(rects.value.find(r => r.id === id)!)) {
             closeContextMenu()
             return
           }
           handleMenuAction('bottom')
           props.fullscreenRect(id)
-        }
-        else {
-          props.restoreRect(id)
         }
         break
       case 'cancel':
@@ -144,7 +144,7 @@ export function useCanvasContextMenu(props: {
     const rect = canvasDom.value.getBoundingClientRect()
     const x = e.clientX - rect.left + canvasDom.value.scrollLeft
     const y = e.clientY - rect.top + canvasDom.value.scrollTop
-  
+
     // 逆序遍历，优先顶层（后渲染）矩形
     for (let i = rects.value.length - 1; i >= 0; i--) {
       const r = rects.value[i]
@@ -153,7 +153,7 @@ export function useCanvasContextMenu(props: {
       const ry = r.y as number
       const rw = r.width as number
       const rh = r.height as number
-  
+
       if (x >= rx && x <= rx + rw && y >= ry && y <= ry + rh) {
         openContextMenu(x, y, r.id, r)
         return
@@ -180,6 +180,6 @@ export function useCanvasContextMenu(props: {
     openContextMenu,
     closeContextMenu,
     handleMenuAction,
-    onCanvasContextMenu
+    onCanvasContextMenu,
   }
 }

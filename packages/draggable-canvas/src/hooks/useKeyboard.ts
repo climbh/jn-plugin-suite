@@ -1,16 +1,17 @@
-import { onMounted, onUnmounted, Ref } from "vue"
-import { useEventListener } from "./useEventListener"
-import { Rect } from "../types"
+import type { Ref } from 'vue'
+import type { Rect } from '../types'
+import { onMounted, onUnmounted } from 'vue'
+import { useEventListener } from './useEventListener'
 
 const { isFocusEvent } = useEventListener()
 
 export function useKeyboard(props: {
-  rects: Ref<Rect[]>,
-  selectedRectId: Ref<string | null>,
-  deleteRect: (id: string) => void,
+  rects: Ref<Rect[]>
+  selectedRectId: Ref<string | null>
+  deleteRect: (id: string) => void
 }) {
   // 键盘删除
-    function onKeydown(e: KeyboardEvent) {
+  function onKeydown(e: KeyboardEvent) {
     // 有聚焦元素，则不进行删除
     if (isFocusEvent.value)
       return

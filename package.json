@@ -40,11 +40,14 @@
     "eslint": "^9.18.0",
     "ts-morph": "^25.0.0",
     "ts-node": "^10.9.2",
-    "tsup": "^8.3.5",
+    "tsdown": "^0.14.1",
     "typescript": "^5.7.2",
     "vite": "^6.3.5",
     "vite-plugin-dts": "^3.0.0",
     "webpack": "^5.97.0"
   },
-  "git-check": false
+  "git-check": false,
+  "volta": {
+    "node": "22.18.0"
+  }
 }

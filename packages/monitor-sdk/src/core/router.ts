@@ -1,4 +1,4 @@
-import type { RouteLocationNormalized, RouteLocationNormalizedLoadedGeneric } from 'vue-router'
+import type { RouteLocationNormalized } from 'vue-router'
 import useApp from '../hooks/useApp'
 import { getStore } from '../utils/store'
 import { addMenuInfo, loginHandle, loginOutHandle } from './private-event'

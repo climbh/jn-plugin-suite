@@ -2,6 +2,7 @@ import type { App } from 'vue'
 import Canvas from './Canvas.vue'
 import DraggableItem from './DraggableItem.vue'
 import DraggableRect from './DraggableRect.vue'
+// oxlint-disable-next-line no-unassigned-import
 import './assets/style/tag.scss'
 
 const components = [Canvas, DraggableRect, DraggableItem]
