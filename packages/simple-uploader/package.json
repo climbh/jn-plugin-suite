@@ -14,13 +14,7 @@
   "scripts": {
     "dev": "tsdown --watch",
     "build": "tsdown",
-    "codecov": "codecov",
-    "test": "npm run test:unit",
-    "test:unit": "karma start",
-    "test:cover": "karma start --coverage",
-    "test:ci": "npm run test:cover",
-    "release": "npm run build && npm publish",
-    "lint": "oxlint --fix --fix-suggestions --fix-dangerously"
+    "lint": "eslint --fix"
   },
   "devDependencies": {
     "tsdown": "^0.14.1",
