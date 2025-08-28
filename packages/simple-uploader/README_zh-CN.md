@@ -154,6 +154,10 @@ var r = new Uploader({ opt1: 'val', ...})
 * `processResponse` 处理请求结果，默认 `function (response, cb) { cb(null, response) }`。 0.5.2版本后，`processResponse` 会传入更多参数：(response, cb, Uploader.File, Uploader.Chunk)。
 * `processParams` 处理请求参数，默认 `function (params) {return params}`，一般用于修改参数名字或者删除参数。0.5.2版本后，`processParams` 会有更多参数：(params, Uploader.File, Uploader.Chunk, isTest)。
 
+魔改后新增的配置项
+
+* `checkChunkUploaded` 可选的函数用于检测每个块是否上传成功了，传入的参数是：`Uploader.Chunk` 实例。这样就没必要上传（测试）所有的块了。（旨在不发送测试请求也可以调用检测块是否已上传，testChunks为false时触发）
+
 #### 属性
 
 * `.support` 当前浏览器是否支持 File API 来上传。
