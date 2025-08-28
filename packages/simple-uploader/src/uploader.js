@@ -98,6 +98,7 @@ Uploader.defaults = {
   initFileFn: null,
   readFileFn: webAPIFileRead,
   checkChunkUploadedByResponse: null,
+  checkChunkUploaded: null,
   initialPaused: false,
   processResponse: function (response, cb) {
     cb(null, response)
@@ -215,14 +216,16 @@ utils.extend(Uploader.prototype, {
   uploadNextChunk: function (preventEvents) {
     var found = false
     var pendingStatus = Chunk.STATUS.PENDING
-    var checkChunkUploaded = this.uploader.opts.checkChunkUploadedByResponse
+    // 只有testChunks为true时才使用checkChunkUploadedByResponse
+    var checkChunkUploadedByResponse = this.opts.testChunks ? this.opts.checkChunkUploadedByResponse : null
+    
     if (this.opts.prioritizeFirstAndLastChunk) {
       utils.each(this.files, function (file) {
         if (file.paused) {
           return
         }
-        if (checkChunkUploaded && !file._firstResponse && file.isUploading()) {
-          // waiting for current file's first chunk response
+        if (checkChunkUploadedByResponse && !file._firstResponse && file.isUploading()) {
+          // 等待当前文件第一个分片的响应
           return
         }
         if (file.chunks.length > 0 && file.chunks[0].status() === pendingStatus) {
@@ -241,11 +244,11 @@ utils.extend(Uploader.prototype, {
       }
     }
 
-    // Now, simply look for the next, best thing to upload
+    // 现在，简单地寻找下一个最佳的上传内容
     utils.each(this.files, function (file) {
       if (!file.paused) {
-        if (checkChunkUploaded && !file._firstResponse && file.isUploading()) {
-          // waiting for current file's first chunk response
+        if (checkChunkUploadedByResponse && !file._firstResponse && file.isUploading()) {
+          // 等待当前文件第一个分片的响应
           return
         }
         utils.each(file.chunks, function (chunk) {
@@ -264,7 +267,7 @@ utils.extend(Uploader.prototype, {
       return true
     }
 
-    // The are no more outstanding chunks to upload, check is everything is done
+    // 没有更多待上传的分片，检查是否全部完成
     var outstanding = false
     utils.each(this.files, function (file) {
       if (!file.isComplete()) {
@@ -272,11 +275,11 @@ utils.extend(Uploader.prototype, {
         return false
       }
     })
-    // should check files now
-    // if now files in list
-    // should not trigger complete event
+    // 现在应该检查文件
+    // 如果列表中没有文件
+    // 不应该触发complete事件
     if (!outstanding && !preventEvents && this.files.length > 0) {
-      // All chunks have been uploaded, complete
+      // 所有分片都已上传完成
       this._triggerAsync('complete')
     }
     return outstanding

@@ -101,14 +101,15 @@ utils.extend(File.prototype, {
 
     this.abort(true)
     this._resetError()
-    // Rebuild stack of chunks from file
+    // 从文件重建分片栈
     this._prevProgress = 0
+    this._firstResponse = false // 确保重置第一次响应标记
     var round = opts.forceChunkSize ? Math.ceil : Math.floor
     var chunks = Math.max(round(this.size / opts.chunkSize), 1)
     for (var offset = 0; offset < chunks; offset++) {
       this.chunks.push(new Chunk(this.uploader, this, offset))
     }
-  },
+},
 
   _measureSpeed: function () {
     var smoothingFactor = this.uploader.opts.speedSmoothingFactor
@@ -182,22 +183,24 @@ utils.extend(File.prototype, {
   },
 
   _updateUploadedChunks: function (message, chunk) {
-    var checkChunkUploaded = this.uploader.opts.checkChunkUploadedByResponse
-    if (checkChunkUploaded) {
+    var checkChunkUploadedByResponse = this.uploader.opts.checkChunkUploadedByResponse
+    
+    // 只有当testChunks为true时才执行checkChunkUploadedByResponse逻辑
+    if (this.uploader.opts.testChunks && checkChunkUploadedByResponse) {
       var xhr = chunk.xhr
       utils.each(this.chunks, function (_chunk) {
         if (!_chunk.tested) {
-          var uploaded = checkChunkUploaded.call(this, _chunk, message)
+          var uploaded = checkChunkUploadedByResponse.call(this, _chunk, message)
           if (_chunk === chunk && !uploaded) {
-            // fix the first chunk xhr status
-            // treated as success but checkChunkUploaded is false
-            // so the current chunk should be uploaded again
+            // 修复第一个分片xhr状态
+            // 被当作成功处理但checkChunkUploadedByResponse返回false
+            // 所以当前分片应该重新上传
             _chunk.xhr = null
           }
           if (uploaded) {
-            // first success and other chunks are uploaded
-            // then set xhr, so the uploaded chunks
-            // will be treated as success too
+            // 第一次成功且其他分片已上传
+            // 然后设置xhr，这样已上传的分片
+            // 也会被当作成功处理
             _chunk.xhr = xhr
           }
           _chunk.tested = true
@@ -210,9 +213,10 @@ utils.extend(File.prototype, {
         this.uploader.uploadNextChunk()
       }
     } else {
+      // testChunks为false或者没有checkChunkUploadedByResponse时的正常流程
       this.uploader.uploadNextChunk()
     }
-  },
+},
 
   _error: function () {
     this.error = this.allError = true

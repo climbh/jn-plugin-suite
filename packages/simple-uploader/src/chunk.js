@@ -115,9 +115,11 @@ utils.extend(Chunk.prototype, {
     this.send()
   },
 
+  // 在chunk.js的send方法中添加checkChunkUploaded检查 (约第110行)
   async send() {
     let preprocess = this.uploader.opts.preprocess
     let read = this.uploader.opts.readFileFn
+    
     if (utils.isFunction(preprocess)) {
       switch (this.preprocessState) {
         case 0:
@@ -136,18 +138,28 @@ utils.extend(Chunk.prototype, {
       case 1:
         return
     }
+    
+    // 新增：当testChunks为false时，检查checkChunkUploaded回调
+    if (!this.uploader.opts.testChunks && this.uploader.opts.checkChunkUploaded && !this.tested) {
+      var shouldSkip = this.uploader.opts.checkChunkUploaded.call(this.uploader, this)
+      if (shouldSkip) {
+        // 跳过这个分片，直接标记为成功
+        this._markAsSkipped()
+        return
+      }
+    }
+    
     if (this.uploader.opts.testChunks && !this.tested) {
       this.test()
       return
     }
 
-    console.log('%c [  ]-150', 'font-size:13px; background:blue; color:#fff;', 2)
 
     this.loaded = 0
     this.total = 0
     this.pendingRetry = false
 
-    // Set up request and listen for event
+    // 设置请求并监听事件
     this.xhr = new XMLHttpRequest()
     this.xhr.upload.addEventListener('progress', progressHandler, false)
     this.xhr.addEventListener('load', doneHandler, false)
@@ -203,6 +215,62 @@ utils.extend(Chunk.prototype, {
     }
   },
 
+  // 添加_markAsSkipped方法
+  _markAsSkipped() {
+    // 创建一个模拟的xhr对象表示成功状态
+    this.xhr = {
+      status: 200,
+      responseText: JSON.stringify({skipped: true, success: true}),
+      readyState: 4
+    }
+    
+    this.tested = true
+    this.loaded = this.endByte - this.startByte // 设置为分片完整大小
+    this.total = this.endByte - this.startByte
+    this.processingResponse = true // 先设置为处理中
+    
+    var self = this
+    var response = JSON.stringify({skipped: true, success: true})
+    
+    // 使用setTimeout模拟异步网络响应
+    setTimeout(function() {
+      // 模拟完整的doneHandler流程
+      self.processingResponse = true
+      self.uploader.opts.processResponse(response, function(err, res) {
+        self.processingResponse = false
+        if (!self.xhr) {
+          return
+        }
+        self.processedState = {
+          err: err,
+          res: res || response
+        }
+        
+        var status = self.status()
+        if (status === STATUS.SUCCESS || status === STATUS.ERROR) {
+          // 触发事件，这会调用file._chunkEvent
+          self._event(status, res || response)
+          if (status === STATUS.ERROR) {
+            self.uploader.uploadNextChunk()
+          }
+        } else {
+          self._event(STATUS.RETRY, res || response)
+          self.pendingRetry = true
+          self.abort()
+          self.retries++
+          var retryInterval = self.uploader.opts.chunkRetryInterval
+          if (retryInterval) {
+            setTimeout(function() {
+              self.send()
+            }, retryInterval)
+          } else {
+            self.send()
+          }
+        }
+      }, self.file, self)
+    }, 0)
+  },
+
   abort() {
     let xhr = this.xhr
     this.xhr = null
@@ -213,37 +281,38 @@ utils.extend(Chunk.prototype, {
     }
   },
 
+  // 修改status方法以正确处理跳过的分片
   status(isTest) {
     if (this.readState === 1) {
       return STATUS.READING
     }
     else if (this.pendingRetry || this.preprocessState === 1) {
-      // if pending retry then that's effectively the same as actively uploading,
-      // there might just be a slight delay before the retry starts
+      // 如果等待重试，那实际上等同于正在上传
+      // 可能只是在重试开始前有轻微延迟
       return STATUS.UPLOADING
     }
     else if (!this.xhr) {
       return STATUS.PENDING
     }
     else if (this.xhr.readyState < 4 || this.processingResponse) {
-      // Status is really 'OPENED', 'HEADERS_RECEIVED'
-      // or 'LOADING' - meaning that stuff is happening
+      // 状态实际上是 'OPENED', 'HEADERS_RECEIVED'
+      // 或 'LOADING' - 意味着正在处理中
       return STATUS.UPLOADING
     }
       let _status
       if (this.uploader.opts.successStatuses.includes(this.xhr.status)) {
-        // HTTP 200, perfect
-        // HTTP 202 Accepted - The request has been accepted for processing, but the processing has not been completed.
+        // HTTP 200, 完美
+        // HTTP 202 已接受 - 请求已被接受处理，但处理尚未完成
         _status = STATUS.SUCCESS
       }
       else if (this.uploader.opts.permanentErrors.includes(this.xhr.status)
         || !isTest && this.retries >= this.uploader.opts.maxChunkRetries) {
-        // HTTP 415/500/501, permanent error
+        // HTTP 415/500/501, 永久错误
         _status = STATUS.ERROR
       }
       else {
-        // this should never happen, but we'll reset and queue a retry
-        // a likely case for this would be 503 service unavailable
+        // 这种情况不应该发生，但我们会重置并排队重试
+        // 可能的情况是503服务不可用
         this.abort()
         _status = STATUS.PENDING
       }
@@ -252,13 +321,9 @@ utils.extend(Chunk.prototype, {
         _status = STATUS.ERROR
       }
       return _status
-    
   },
 
-  message() {
-    return this.xhr ? this.xhr.responseText : ''
-  },
-
+  // 修改progress方法以正确处理跳过的分片
   progress() {
     if (this.pendingRetry) {
       return 0
@@ -271,18 +336,21 @@ utils.extend(Chunk.prototype, {
       return 0
     }
       return this.total > 0 ? this.loaded / this.total : 0
-    
   },
 
+  // 修改sizeUploaded方法以正确处理跳过的分片
   sizeUploaded() {
     let size = this.endByte - this.startByte
-    // can't return only chunk.loaded value, because it is bigger than chunk size
+    // 不能只返回chunk.loaded值，因为它可能比chunk大小还大
     if (this.status() !== STATUS.SUCCESS) {
       size = this.progress() * size
     }
     return size
   },
 
+  message() {
+    return this.xhr ? this.xhr.responseText : ''
+  },
   async prepareXhrRequest(method, isTest, paramsMethod, blob) {
     // Add data from the query options
     let query = utils.evalOpts(this.uploader.opts.query, this.file, this, isTest)
@@ -309,7 +377,7 @@ utils.extend(Chunk.prototype, {
         data.append(k, v)
       })
       if (blob) {
-        data.append(this.uploader.opts.fileParameterName, blob, this.file.name)
+        // data.append(this.uploader.opts.fileParameterName, blob, this.file.name)
       }
     }
 
