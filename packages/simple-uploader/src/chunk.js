@@ -119,8 +119,7 @@ utils.extend(Chunk.prototype, {
   async send() {
     let preprocess = this.uploader.opts.preprocess
     let read = this.uploader.opts.readFileFn
-    
-    if (utils.isFunction(preprocess)) {
+    if (typeof preprocess === 'function') {
       switch (this.preprocessState) {
         case 0:
           this.preprocessState = 1
@@ -377,7 +376,7 @@ utils.extend(Chunk.prototype, {
         data.append(k, v)
       })
       if (blob) {
-        // data.append(this.uploader.opts.fileParameterName, blob, this.file.name)
+        data.append(this.uploader.opts.fileParameterName, blob, this.file.name)
       }
     }
 
