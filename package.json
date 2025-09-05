@@ -24,6 +24,8 @@
     "@tiptap/extension-text-align": "^2.22.3",
     "@tiptap/extension-text-style": "^2.22.3",
     "@types/lodash-es": "^4.17.12",
+    "acorn": "^8.15.0",
+    "acorn-walk": "^8.3.4",
     "chokidar": "^4.0.3",
     "core-js": "3",
     "lodash-es": "^4.17.21",

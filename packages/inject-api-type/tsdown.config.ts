@@ -10,6 +10,5 @@ export default defineConfig(_options => ({
   dts: true, // 生成 TypeScript 类型定义文件
   treeshake: true,
   splitting: true,
-  external: ['ts-morph'], // 保持外部依赖配置
   sourcemap: false,
 }))

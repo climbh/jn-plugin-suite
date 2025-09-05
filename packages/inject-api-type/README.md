@@ -3,10 +3,7 @@
 #### 安装
 
 ```bash
-pnpm add @jsjn/inject-api-type
-
-// 这个是必须的,插件内使用了ts-morph来解析ts文件
-pnpm add ts-morph
+pnpm add @jsjn/inject-api-type -D
 ```
 
 #### 使用

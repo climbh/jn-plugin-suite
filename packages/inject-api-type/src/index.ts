@@ -1,5 +1,6 @@
 import type { Compiler } from 'webpack'
 import { firstLoad } from './run'
+import { parseFile } from './parse'
 
 class injectApiTypesWebpack {
   private watchDir: string = ''
@@ -14,7 +15,7 @@ class injectApiTypesWebpack {
 
     this.watchDir = `${this.rootPath}/src/api/modules`
     this.outDir = `${this.rootPath}/src/api`
-
+    
     compiler.hooks.done.tap('inject-api-types-webpack', () => {
       if (!this.loadSuccess) {
         this.run()

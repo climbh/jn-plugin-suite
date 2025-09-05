@@ -5,17 +5,20 @@ import path, { join } from 'node:path'
 import { parseFile } from './parse'
 import { watchFiles } from './watch'
 
-export function firstLoad(options: {
+export async function firstLoad(options: {
   watchDir: string
   outDir: string
   rootPath: string
 }) {
   // 读取文件夹下的所有文件
-  const theCompleteParser: Resolver[] = fs.readdirSync(options.watchDir).filter(i => i.endsWith('.ts')).map((file) => {
+  const theCompleteParser: Resolver[] = []
+  const apiFiles = fs.readdirSync(options.watchDir).filter(i => i.endsWith('.ts')).map((file) => {
     const fileName = file.split('.')[0]
     return readParse(join(options.watchDir, file), fileName)
   })
 
+  const res = await Promise.all(apiFiles)
+  theCompleteParser.push(...res)
   // 保存所有的解析体
   theCompleteParser.forEach((resolver) => {
     updateResolver(resolver)
@@ -30,9 +33,9 @@ export function firstLoad(options: {
   tsConfigInject(options.rootPath)
 
   // 监听文件变化
-  watchFiles(options.watchDir, (file: string) => {
+  watchFiles(options.watchDir, async (file: string) => {
     const fileName = file.split('.')[0]
-    const resolver = readParse(join(options.watchDir, file), fileName)
+    const resolver = await readParse(join(options.watchDir, file), fileName)
     updateResolver(resolver)
     const content = assemblyInterface()
     writeInType(content, path.join(options.rootPath, 'api-type.d.ts'))
@@ -44,9 +47,9 @@ export function firstLoad(options: {
  * @param filePath 文件路径
  * @returns
  */
-function readParse(filePath: string, fileName: string): Resolver {
+async function readParse(filePath: string, fileName: string): Promise<Resolver> {
   const path = join(filePath)
-  const parseFileContent = parseFile(path)
+  const parseFileContent = await parseFile(path)
   return {
     fileName,
     fileResolvers: parseFileContent,
@@ -71,19 +74,30 @@ function writeInType(Content: string, path: string) {
 
 // 生成的api类型声明需要用的语句导入
 function assemblyInterface() {
-  let interfaceStr = `interface  BaseResponse {
+  let interfaceStr = 
+`interface BaseResponse {
     code: '000000' | '500000' | '800403' | '800405'
     data: any
     msg: string
     status: number | string
     success: boolean
-  } \n declare interface IApiType {`
+} \n
+declare interface IApiType {`
 
   Object.keys(API_TYPES).forEach((moduleName) => {
     const apis = API_TYPES[moduleName]
-    interfaceStr += `\n${moduleName}: {\n${apis
-      .map(api => `${api.comment ? `/**\n*  ${api.comment}\n*/` : ''} \n${api.name}: (params?: any) => Promise<BaseResponse>`)
-      .join('\n')}\n}`
+    interfaceStr += '\n'
+    // 模块名
+    interfaceStr += ` ${moduleName}:{\n`
+    apis.forEach(api => {
+      // 接口注释
+      if(api.comment) {
+        interfaceStr += ` /**\n * ${api.comment}\n  */\n`
+      }
+      // 接口名
+      interfaceStr += `  ${api.apiName}: (params?: any) => Promise<BaseResponse>\n`
+    })
+    interfaceStr += `}\n`
   })
   // 测试测试
   interfaceStr += '\n}'
@@ -111,8 +125,7 @@ function injectApiType(apisFilePath: string) {
 function tsConfigInject(rootPath: string) {
   const tsConfigPath = path.join(rootPath, 'tsconfig.json')
   const tsConfigContent = fs.readFileSync(tsConfigPath, 'utf-8')
-  const tsConfig = JSON.parse(tsConfigContent)
-
+  const tsConfig = JSON.parse(stripJsonComments(tsConfigContent))
   if (!tsConfig.include.join('').includes('api-type.d.ts')) {
     tsConfig.include.push('./api-type.d.ts')
   }
@@ -120,5 +133,15 @@ function tsConfigInject(rootPath: string) {
   fs.writeFileSync(tsConfigPath, JSON.stringify(tsConfig, null, 2), 'utf-8')
 
   // eslint 格式化
-  exec(`npx lint --fix ${tsConfigPath}`)
+  // exec(`npx lint --fix ${tsConfigPath}`)
+}
+
+/**
+ * 去掉json注释
+ * @param str 
+ * @returns 
+ */
+function stripJsonComments(str: string) {
+  return str
+    .replace(/\/\/.*$/gm, '');        // 去掉 // 注释
 }
