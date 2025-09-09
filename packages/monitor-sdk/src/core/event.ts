@@ -11,7 +11,7 @@ const monitorInstance = getMonitorInstance()
  * @param properties 公共属性
  * @description 添加的公共属性会自动添加到所有事件中
  */
-export function registerSuperProperties(properties = {}): void {
+export function registerSuperProperties<T extends Record<string, any>>(properties: T): void {
   monitorInstance?.registerPage(properties)
 }
 

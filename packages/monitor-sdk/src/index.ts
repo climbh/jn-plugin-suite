@@ -4,6 +4,8 @@ import type { DeepPartial } from './utils/type'
 import { setUp } from './core/init'
 
 export * from './core'
+export { __loginHandle, __logOutHandle } from './core/private-event'
+
 export * from './core/types'
 
 export default function (options: {

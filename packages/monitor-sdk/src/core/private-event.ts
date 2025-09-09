@@ -1,31 +1,11 @@
 import type { RouteConfig } from '../utils'
+import type { SuperProperties } from './types'
 import useApp from '../hooks/useApp'
 import { findNodeAndParentsByPath, replacePath } from '../utils'
 import { registerSuperProperties } from './event'
 import { getMonitorInstance, getRouterMapping } from './instance'
 
 const monitorInstance = getMonitorInstance()
-
-/**
- * 关联用户
- * @param userId 用户id
- * @description 关联用户, 用于后续的分析, 在用户登录后调用
- */
-export const addLogin = (userId: string): void => monitorInstance?.login(userId)
-
-/**
- * 取消用户关联
- * @description 取消用户关联, 在用户退出登录后调用
- */
-export function loginOut() {
-  registerSuperProperties({
-    $institu_id: '',
-    $user_id: '',
-    $authorization: '',
-    $menu_id: '',
-  })
-  monitorInstance?.logout()
-}
 
 /**
  * 补充菜单信息
@@ -68,7 +48,7 @@ export function addMenuInfo(path: string) {
 /**
  * 上报信息中添加用户信息
  */
-export function loginHandle(userId?: string) {
+export function __loginHandle(userId?: string) {
   const $store = useApp().$store
   const { instituInfo, loginInfo, departList } = $store.state.currentUserInfo
   const { access_token } = $store.state.loginInfo
@@ -76,17 +56,32 @@ export function loginHandle(userId?: string) {
   if (!_userId)
     return
 
-  registerSuperProperties({
+  type defaultSuperProperties = Pick<SuperProperties, '$institu_id' | '$user_id' | '$authorization' | '$departIds' | '$departNames'>
+  registerSuperProperties<defaultSuperProperties>({
     $institu_id: instituInfo.instituId,
     $user_id: _userId,
     $authorization: access_token,
     $departIds: departList.map(i => i.id).join(','),
     $departNames: departList.map(i => i.name).join(','),
   })
-  addLogin(_userId)
+  monitorInstance?.login(_userId)
 }
 
 /**
- * 退出登录, 清空上报信息中的登录用户信息
+ * 取消用户关联
+ * @description 取消用户关联, 在用户退出登录后调用
  */
-export const loginOutHandle = loginOut
+export function __logOutHandle() {
+  registerSuperProperties<SuperProperties>({
+    $institu_id: '',
+    $user_id: '',
+    $authorization: '',
+    $menu_id: '',
+    $menu_parentIds: [],
+    $menu_id_before: '',
+    $menu_id_before_parentIds: [],
+    $departIds: '',
+    $departNames: '',
+  })
+  monitorInstance?.logout()
+}

@@ -24,7 +24,9 @@ function initMonitorSdk(
 ) {
   const { config, carryingConfig } = options ?? {}
   const defaultConfig: MonitorSdkConfig = {
-    enable_sdk: false,
+    enable_sdk: true,
+    enable_page_leave: true,
+    enable_page_view: true,
     server_url: '', // 数据接收地址
     batch_send: {
       datasend_timeout: 10000, // 一次请求超过多少毫秒的话自动取消，防止请求无响应。
@@ -45,15 +47,9 @@ function initMonitorSdk(
       // 是否开启触达图，default 表示开启，自动采集 $WebStay 事件，可以设置 'not_collect' 表示关闭。
       // 需要 Web JS SDK 版本号大于 1.9.1
       // https://manual.sensorsdata.cn/sa/docs/tech_sdk_client_web_all_use/v0300#Web_%E5%85%83%E7%B4%A0%E7%82%B9%E5%87%BB($WebClick)
-      scroll_notice_map: 'default',
+      scroll_notice_map: 'not_collect',
     },
   }
-
-  // 注册插件
-  registerPlugin(monitorInstance)
-
-  // 监听路由
-  listeningToRoute()
 
   // 初始化神策 SDK
   const initConfig = mergeData(config || {}, defaultConfig)
@@ -68,6 +64,15 @@ function initMonitorSdk(
     console.warn('当前 server_url 为空或不正确，network 中不会发数据，请配置正确的 server_url！')
     return
   }
+
+  // 注册插件
+  registerPlugin(monitorInstance, {
+    enable_page_leave: initConfig.enable_page_leave,
+    enable_page_view: initConfig.enable_page_view,
+  })
+
+  // 监听路由
+  listeningToRoute()
 
   monitorInstance?.init(initConfig)
 

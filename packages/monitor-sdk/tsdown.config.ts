@@ -1,4 +1,3 @@
-import type { OutExtensionContext } from 'tsdown'
 import { defineConfig } from 'tsdown'
 
 export default defineConfig(_options => ({

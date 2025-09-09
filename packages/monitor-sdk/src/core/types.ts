@@ -7,6 +7,15 @@ export interface MonitorSdkConfig {
    */
   enable_sdk: boolean
   /**
+   * 开启页面离开事件采集 (默认开启)
+   */
+  enable_page_leave: boolean
+
+  /**
+   * 开启页面浏览事件采集 (默认开启)
+   */
+  enable_page_view: boolean
+  /**
    * 数据接收地址
    */
   server_url: string
@@ -108,4 +117,19 @@ export interface Tracker {
    * @returns 构建器
    */
   report: () => Tracker
+}
+
+/**
+ * 全局属性
+ */
+export interface SuperProperties {
+  $institu_id: string
+  $user_id: string
+  $authorization: string
+  $departIds: string
+  $departNames: string
+  $menu_id: string
+  $menu_parentIds: string[]
+  $menu_id_before: string
+  $menu_id_before_parentIds: string[]
 }

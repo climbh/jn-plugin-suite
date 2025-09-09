@@ -19,7 +19,7 @@
     "publish:ci": "pnpm build && npm version patch && npm publish --access public",
     "publish": "npm publish"
   },
-  "dependencies": {
+  "devDependencies": {
     "sa-sdk-javascript": "1.27.4"
   },
   "publishConfig": {

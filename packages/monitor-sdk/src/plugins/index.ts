@@ -1,13 +1,20 @@
 // import pageleave from 'sa-sdk-javascript/dist/web/plugin/pageleave/index.es6.js'
 import rgp from 'sa-sdk-javascript/dist/web/plugin/register-properties/index.es6.js'
 import { setRgp } from '../core/instance'
+import pageleave from './pageleave'
 import pageload from './pageload'
 import pageview from './pageview'
-import pageleave from './pageleave'
 
-export function registerPlugin(monitorInstance: any) {
-
-  monitorInstance.use(pageview)
+export function registerPlugin(
+  monitorInstance: any,
+  options: {
+    enable_page_leave: boolean
+    enable_page_view: boolean
+  },
+) {
+  if (options.enable_page_view) {
+    monitorInstance.use(pageview)
+  }
 
   /**
    * 页面加载时长的插件
@@ -22,17 +29,9 @@ export function registerPlugin(monitorInstance: any) {
    * event_duration 为页面的停留时长
    * https://github.com/sensorsdata/sa-sdk-javascript/tree/master/dist/web/plugin/pageleave
    */
-  monitorInstance.use(pageleave, {
-    custom_props: {
-
-    },
-    heartbeat_interval_time: 5,
-    max_duration: 5 * 24 * 60 * 60,
-    isCollectUrl(_url: string) {
-    // url 为要采集页面浏览时长的页面地址。
-      return true // 采集
-    },
-  })
+  if (options.enable_page_leave) {
+    monitorInstance.use(pageleave)
+  }
 
   /**
    * 注册属性插件实例

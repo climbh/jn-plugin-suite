@@ -10,7 +10,7 @@ export default {
   plugin_name: 'pageleave',
   init(sd: any) {
     sd.ee.sdk.on('ready', () => {
-        collectPageLeave()
+      collectPageLeave()
     })
   },
 }
@@ -19,47 +19,46 @@ const _window = getWindow()
 
 export function collectPageLeave() {
   const router = useApp().$router
-  if(router) {
-  router.beforeEach((to, from, next) => {
+  if (router) {
+    router.beforeEach((to, from, next) => {
     // 检查路径是否发生变化（忽略查询参数）
-    if (from.path !== to.path) {
-      reportPageLeave(getOrigin() + from.path  + `${queryTransform2UrlParams(from.query)}`,);
-    }
-    next();
-  });
+      if (from.path !== to.path) {
+        reportPageLeave(`${getOrigin() + from.path}${queryTransform2UrlParams(from.query)}`)
+      }
+      next()
+    })
   }
-  let startTime = Date.now();
+  let startTime = Date.now()
   // 页面可见性变化
   const handleVisibilityChange = () => {
     if (document.visibilityState === 'hidden') {
-      reportPageLeave(getUrl());
+      reportPageLeave(getUrl())
     }
-  };
+  }
 
   // 页面卸载
   const handleUnload = () => {
-    reportPageLeave(getUrl());
-  };
+    reportPageLeave(getUrl())
+  }
 
   // 上报离开事件
   function reportPageLeave(fromUrl: any) {
-    const duration = formatDuration(Date.now() - startTime) ;
+    const duration = formatDuration(Date.now() - startTime)
     reportEvent('$WebPageLeave', {
       event_duration: duration,
       $referrer: fromUrl,
     })
-    startTime = Date.now();
+    startTime = Date.now()
   }
 
-  document.addEventListener('visibilitychange', handleVisibilityChange);
+  document.addEventListener('visibilitychange', handleVisibilityChange)
   // window.addEventListener('beforeunload', handleUnload);
-  window.addEventListener('unload', handleUnload);
+  window.addEventListener('unload', handleUnload)
 }
-
 
 // 毫秒转为秒
 function formatDuration(duration: number) {
-  return duration / 1000;
+  return duration / 1000
 }
 
 function getUrl() {
