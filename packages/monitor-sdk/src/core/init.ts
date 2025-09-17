@@ -3,8 +3,9 @@ import type { RouteConfig } from '../utils'
 import type { DeepPartial } from '../utils/type'
 import type { MonitorSdkConfig } from './types'
 import { registerPlugin } from '../plugins'
-import { mergeData } from '../utils'
+import { isLoginPage, mergeData, urlHashString } from '../utils'
 import { getMonitorInstance, setApp, setRouterMapping } from './instance'
+import { __loginHandle, addMenuInfo } from './private-event'
 import listeningToRoute from './router'
 
 const monitorInstance = getMonitorInstance()
@@ -71,10 +72,20 @@ function initMonitorSdk(
     enable_page_view: initConfig.enable_page_view,
   })
 
+  monitorInstance?.init(initConfig)
+  /**
+   *  只要不是登录页, 就需要处理登录事件
+   *  因为目前__loginHandle操作是在登录完成后执行的
+   *  这里再次判断是为了保证用户刷新页面数据重新初始化
+   */
+  if (!isLoginPage()) {
+    const path = urlHashString()
+    __loginHandle('', true)
+    addMenuInfo(path)
+  }
+
   // 监听路由
   listeningToRoute()
-
-  monitorInstance?.init(initConfig)
 
   // 神策 SDK 初始化完成，公共属性埋点(这里的属性是公共属性，会自动添加到所有事件中)
   monitorInstance?.registerPage({

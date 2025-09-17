@@ -1,3 +1,5 @@
+import type monitor from 'sa-sdk-javascript'
+
 /**
  * sdk 配置
  */
@@ -132,4 +134,15 @@ export interface SuperProperties {
   $menu_parentIds: string[]
   $menu_id_before: string
   $menu_id_before_parentIds: string[]
+}
+
+type monitorInstance = typeof monitor
+
+export interface Monitor extends monitorInstance {
+  para: {
+    server_url: string
+    show_log: boolean
+    send_type: 'image' | 'ajax' | 'beacon'
+    heatmap: MonitorSdkConfig['heatmap']
+  }
 }

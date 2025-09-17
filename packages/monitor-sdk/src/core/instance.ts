@@ -1,5 +1,6 @@
 import type { App } from 'vue'
 import type { RouteConfig } from '../utils'
+import type { Monitor } from './types'
 import monitor from 'sa-sdk-javascript'
 
 /**
@@ -7,7 +8,7 @@ import monitor from 'sa-sdk-javascript'
  */
 
 export function getMonitorInstance() {
-  return monitor
+  return monitor as Monitor
 }
 
 /**

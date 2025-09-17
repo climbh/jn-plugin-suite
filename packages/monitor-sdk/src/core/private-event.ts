@@ -1,7 +1,7 @@
 import type { RouteConfig } from '../utils'
 import type { SuperProperties } from './types'
 import useApp from '../hooks/useApp'
-import { findNodeAndParentsByPath, replacePath } from '../utils'
+import { findNodeAndParentsByPath, replacePath, replaceServerUrl } from '../utils'
 import { registerSuperProperties } from './event'
 import { getMonitorInstance, getRouterMapping } from './instance'
 
@@ -27,6 +27,7 @@ export function addMenuInfo(path: string) {
   const parentNodes = node ? findNodeAndParentsByPath(_routerConfigs, node.meta.funcId as string)?.slice(0, -1) : []
   const menuId = node ? (node.meta.funcId as string) : ''
   const parentIds: string[] = parentNodes?.map(i => (i.meta?.funcId || '') as string) ?? []
+
   registerSuperProperties({ $menu_id: menuId })
   registerSuperProperties({ $menu_parentIds: parentIds })
   registerSuperProperties({ $menu_id_before: beforeMenuId })
@@ -48,13 +49,15 @@ export function addMenuInfo(path: string) {
 /**
  * 上报信息中添加用户信息
  */
-export function __loginHandle(userId?: string) {
+export function __loginHandle(userId?: string, reload: boolean = false) {
   const $store = useApp().$store
   const { instituInfo, loginInfo, departList } = $store.state.currentUserInfo
   const { access_token } = $store.state.loginInfo
   const _userId = userId || loginInfo.userId
   if (!_userId)
     return
+
+  replaceServerUrl(_userId)
 
   type defaultSuperProperties = Pick<SuperProperties, '$institu_id' | '$user_id' | '$authorization' | '$departIds' | '$departNames'>
   registerSuperProperties<defaultSuperProperties>({
@@ -64,7 +67,9 @@ export function __loginHandle(userId?: string) {
     $departIds: departList.map(i => i.id).join(','),
     $departNames: departList.map(i => i.name).join(','),
   })
-  monitorInstance?.login(_userId)
+  if (!reload) {
+    monitorInstance?.login(_userId)
+  }
 }
 
 /**
@@ -72,6 +77,7 @@ export function __loginHandle(userId?: string) {
  * @description 取消用户关联, 在用户退出登录后调用
  */
 export function __logOutHandle() {
+  replaceServerUrl('')
   registerSuperProperties<SuperProperties>({
     $institu_id: '',
     $user_id: '',

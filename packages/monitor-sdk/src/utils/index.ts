@@ -1,4 +1,5 @@
 import type { _RouteRecordBase, RouteComponent, RouteMeta, RouteRecordNormalized } from 'vue-router'
+import { getMonitorInstance } from '../core/instance'
 
 /**
  * 深度合并对象
@@ -149,14 +150,24 @@ export function replacePath(path: string) {
   return path.replace(/\/merge/, '')
 }
 
+export function urlHashString() {
+  return location.hash.replace('#', '')
+}
+
 /**
  * 将查询参数转换为 URL 参数
  * @param query 查询参数
  * @returns URL 参数
  */
 export function queryTransform2UrlParams(query: any) {
-  if(Object.keys(query).length === 0) return ''
-  return '?' + Object.entries(query).map(([key, value]) => `${key}=${value}`).join('&')
+  if (Object.keys(query).length === 0)
+    return ''
+  return `?${Object.entries(query).map(([key, value]) => `${key}=${value}`).join('&')}`
+}
+
+export function isLoginPage() {
+  const { hash } = getWindow().location
+  return hash.includes('/login')
 }
 
 /**
@@ -174,5 +185,21 @@ export function getWindow() {
 export function getOrigin() {
   const _window = getWindow()
   const { origin, pathname } = _window.location
-  return origin + pathname + '#'
+  return `${origin + pathname}#`
+}
+
+/**
+ * 替换服务器URL中的user_id参数
+ */
+export function replaceServerUrl(userId: string) {
+  const monitorInstance = getMonitorInstance()
+  if (!monitorInstance)
+    return
+  const serverUrl = monitorInstance?.para?.server_url || ''
+  const orginUrl = serverUrl.split('?')[0]
+  if (userId) {
+    monitorInstance.para.server_url = `${orginUrl}?user_id=${userId}`
+    return
+  }
+  monitorInstance.para.server_url = orginUrl
 }
