@@ -74,8 +74,9 @@ function initMonitorSdk(
 
   monitorInstance?.init(initConfig)
   /**
-   *  只要不是登录页, 就需要处理登录事件
-   *  因为目前__loginHandle操作是在登录完成后执行的
+   *  初始化一般在登录页面执行(因为是在基座的main中就注册了)
+   *  所以只要不是登录页, 就说明是刷新或者url进入页面, 就需要在处理登录事件
+   *  (模式__loginHandle操作是在登录完成后执行的)
    *  这里再次判断是为了保证用户刷新页面数据重新初始化
    */
   if (!isLoginPage()) {
