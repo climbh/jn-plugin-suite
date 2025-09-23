@@ -166,8 +166,9 @@ export function queryTransform2UrlParams(query: any) {
 }
 
 export function isLoginPage() {
-  const { hash } = getWindow().location
-  return hash.includes('/login')
+  // 之所以这么取值是因为在某些浏览器版本中获取到的url会是 /login, 即使当前页面不是login
+  const currentPath = JSON.parse(localStorage.getItem('vuex') || '{}')?.currentStatus?.currentPath
+  return (currentPath && currentPath === '/login')
 }
 
 /**
