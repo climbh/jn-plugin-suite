@@ -1,8 +1,8 @@
 // import pageleave from 'sa-sdk-javascript/dist/web/plugin/pageleave/index.es6.js'
 import rgp from 'sa-sdk-javascript/dist/web/plugin/register-properties/index.es6.js'
 import { setRgp } from '../core/instance'
+import appload from './appload'
 import pageleave from './pageleave'
-import pageload from './pageload'
 import pageview from './pageview'
 
 export function registerPlugin(
@@ -10,6 +10,7 @@ export function registerPlugin(
   options: {
     enable_page_leave: boolean
     enable_page_view: boolean
+    enable_app_load: boolean
   },
 ) {
   if (options.enable_page_view) {
@@ -22,7 +23,9 @@ export function registerPlugin(
    * $page_resource_size 页面资源大小
    * https://github.com/sensorsdata/sa-sdk-javascript/tree/master/dist/web/plugin/pageload
    */
-  monitorInstance.use(pageload)
+  if (options.enable_app_load) {
+    monitorInstance.use(appload)
+  }
 
   /**
    * 页面停留时长的插件

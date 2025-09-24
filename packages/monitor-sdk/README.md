@@ -42,6 +42,29 @@ app.use(monitorSdk(window.__MONITOR_SDK_CONFIG__, window.__MONITOR_SDK_GLOBAL_PR
 
 `__MONITOR_SDK_GLOBAL_PROPERTIES__`: monitor-sdk的公共上报属性(该属性会添加到每次上报的内容中)
 
+##### 配置选项说明
+
+`__MONITOR_SDK_CONFIG__`支持以下配置选项：
+
+- `enable_sdk`: 是否启用SDK (默认: true)
+- `enable_page_leave`: 是否开启页面离开事件采集 (默认: true)
+- `enable_page_view`: 是否开启页面浏览事件采集 (默认: true)
+- `enable_app_load`: 是否开启应用加载事件采集 (默认: true)
+- `enable_first_visit_profile`: 是否开启首次访问用户属性自动设置 (默认: true)
+  - 设置为 `false` 可禁用SDK自动调用 `profile_set_once` 设置首次访问时间等属性
+- `server_url`: 数据接收地址 (必填)
+- `batch_send`: 是否批量发送 (默认: false)
+- `send_type`: 发送方式 ('image' | 'ajax' | 'beacon', 默认: 'image')
+- `use_base64`: 是否使用base64编码 (默认: false)
+- `use_client_time`: 是否使用客户端时间 (默认: false)
+- `is_track_single_page`: 是否追踪单页应用 (默认: true)
+- `use_app_track`: 是否使用应用追踪 (默认: false)
+- `encrypt_cookie`: 是否加密cookie (默认: false)
+- `show_log`: 是否显示日志 (默认: false)
+- `heatmap`: 热力图配置
+  - `clickmap`: 点击图配置 ('default' | 'not_collect', 默认: 'default')
+  - `scroll_notice_map`: 触达图配置 ('default' | 'not_collect', 默认: 'default')
+
 ### 子应用的使用
 
 子应用如果使用自定义埋点则进行下面的操作,否则不需要进行任何操作

@@ -8,6 +8,7 @@ export interface MonitorSdkConfig {
    * 开启监控(默认开启)
    */
   enable_sdk: boolean
+
   /**
    * 开启页面离开事件采集 (默认开启)
    */
@@ -17,10 +18,23 @@ export interface MonitorSdkConfig {
    * 开启页面浏览事件采集 (默认开启)
    */
   enable_page_view: boolean
+
+  /**
+   * 是否开启应用加载事件采集 (默认开启)
+   */
+  enable_app_load: boolean
+
+  /**
+   * 是否开启首次访问用户属性自动设置 (默认开启)
+   * 控制SDK是否自动调用profile_set_once设置首次访问时间等属性
+   */
+  enable_first_visit_profile: boolean
+
   /**
    * 数据接收地址
    */
   server_url: string
+
   /**
    * 是否开启批量发送 (默认开启)
    */
@@ -29,15 +43,18 @@ export interface MonitorSdkConfig {
      * 一次请求超过多少毫秒的话自动取消，防止请求无响应
      */
     datasend_timeout: number
+
     /**
      * 间隔多少毫秒发一次数据
      */
     send_interval: number
+
     /**
      * 存储 localStorage 条数最大值，默认：200 。如 localStorage 条数超过该值，则使用 image 方式立即发送数据
      */
     storage_length: number
   }
+
   /**
    * 发送类型
    */
@@ -52,25 +69,27 @@ export interface MonitorSdkConfig {
    * 是否使用客户端时间
    */
   use_client_time: boolean
-  /**
-   * 是否开启点击图和触达图
-   */
+
   /**
    * 是否开启单页应用页面浏览事件采集(url改变就触发) (默认为开启)
    */
   is_track_single_page: boolean
+
   /**
    * 是否开启移动端应用埋点 (默认为开启)
    */
   use_app_track: boolean
+
   /**
    * 是否开启加密cookie (默认为开启)
    */
   encrypt_cookie: boolean
+
   /**
    * 是否开启控制台显示数据 (默认为开发环境打开)
    */
   show_log: boolean
+
   /**
    * 是否开启点击图和触达图
    */
@@ -79,6 +98,7 @@ export interface MonitorSdkConfig {
      * 是否开启点击图 (默认为开启)
      */
     clickmap: 'default' | 'not_collect'
+
     /**
      * 是否开启触达图 (默认为true)
      */

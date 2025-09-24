@@ -28,6 +28,8 @@ function initMonitorSdk(
     enable_sdk: true,
     enable_page_leave: true,
     enable_page_view: true,
+    enable_app_load: true,
+    enable_first_visit_profile: false,
     server_url: '', // 数据接收地址
     batch_send: {
       datasend_timeout: 10000, // 一次请求超过多少毫秒的话自动取消，防止请求无响应。
@@ -53,7 +55,7 @@ function initMonitorSdk(
   }
 
   // 初始化神策 SDK
-  const initConfig = mergeData(config || {}, defaultConfig)
+  const initConfig: MonitorSdkConfig = mergeData(config || {}, defaultConfig)
 
   // 神策sdk没有直接禁用sdk的配置, 所以手动设置 server_url 为空来阻止上报
   if (!initConfig.enable_sdk) {
@@ -70,9 +72,37 @@ function initMonitorSdk(
   registerPlugin(monitorInstance, {
     enable_page_leave: initConfig.enable_page_leave,
     enable_page_view: initConfig.enable_page_view,
+    enable_app_load: initConfig.enable_app_load,
   })
 
   monitorInstance?.init(initConfig)
+
+  // 根据配置决定是否禁用首次访问用户属性自动设置
+  if (!initConfig.enable_first_visit_profile) {
+    // 通过重写setOnceProfile方法来禁用自动调用
+    const originalSetOnceProfile = monitorInstance?.setOnceProfile
+    if (monitorInstance && originalSetOnceProfile) {
+      monitorInstance.setOnceProfile = function (properties: any, callback?: any) {
+        // 检查是否为SDK内部自动调用的首次访问属性
+        if (properties && typeof properties === 'object') {
+          const hasFirstVisitProps = Object.keys(properties).some(key =>
+            key.includes('first_visit')
+            || key.includes('$first_visit')
+            || key === '$first_visit_time',
+          )
+
+          // 如果包含首次访问相关属性，则不执行
+          if (hasFirstVisitProps) {
+            console.log('已禁用首次访问用户属性自动设置')
+            return this
+          }
+        }
+
+        // 其他情况正常执行
+        return originalSetOnceProfile.call(this, properties, callback)
+      }
+    }
+  }
   /**
    *  初始化一般在登录页面执行(因为是在基座的main中就注册了)
    *  所以只要不是登录页, 就说明是刷新或者url进入页面, 就需要在处理登录事件
@@ -96,7 +126,9 @@ function initMonitorSdk(
   })
 
   // 自动采集事件埋点：主要用于主动触发页面浏览事件，一般只在页面配置后调用一次即可
-  monitorInstance?.quick('autoTrack')
+  // if (initConfig.enable_page_view) {
+  //   monitorInstance?.quick('autoTrack')
+  // }
 }
 
 export function setUp(app: App, options: Partial<InitMonitorSdkOptions>, routerMapping: Record<string, RouteConfig>) {

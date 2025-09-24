@@ -44,7 +44,7 @@ export function collectPageLeave() {
   // 上报离开事件
   function reportPageLeave(fromUrl: any) {
     const duration = formatDuration(Date.now() - startTime)
-    reportEvent('$WebPageLeave', {
+    reportEvent('$pageleave', {
       event_duration: duration,
       $referrer: fromUrl,
     })

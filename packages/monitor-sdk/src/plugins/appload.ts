@@ -1,5 +1,5 @@
 import { reportEvent } from '../core'
-import { getWindow } from '../utils'
+import { getWindow, isLoginPage } from '../utils'
 
 const _W = getWindow()
 /**
@@ -7,11 +7,11 @@ const _W = getWindow()
  */
 
 export default {
-  plugin_name: 'pageload',
+  plugin_name: 'appload',
   init(sd: any) {
     sd.ee.sdk.on('ready', () => {
       // 只有登录页才进行
-      if (_W.location.href.includes('login')) {
+      if (isLoginPage()) {
         collectPagePerformance()
       }
     })
@@ -54,7 +54,7 @@ export function collectPagePerformance() {
     // 10. DOM 解析耗时
     const domParse = nav.domComplete - nav.domInteractive
 
-    reportEvent('$pageload', {
+    reportEvent('$appload', {
       whiteScreen,
       domReady,
       loadTime,
