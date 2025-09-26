@@ -9,10 +9,14 @@
   "keywords": [],
   "main": "index.js",
   "scripts": {
-    "release": "bumpp"
-  },
-  "peerDependencies": {
-    "ts-morph": "^25.0.0"
+    "build": "pnpm -r run build",
+    "dev": "pnpm -r --parallel run dev",
+    "lint": "pnpm -r run lint",
+    "clean": "pnpm -r exec rm -rf dist",
+    "changeset": "changeset",
+    "version-packages": "changeset version",
+    "release": "pnpm build && changeset publish",
+    "release:ci": "pnpm build && changeset publish --registry http://172.31.71.159/repository/npm-jsjngf/"
   },
   "dependencies": {
     "@jsjn/micro-core-store": "^2.1.0",
@@ -35,6 +39,7 @@
   },
   "devDependencies": {
     "@antfu/eslint-config": "^3.14.0",
+    "@changesets/cli": "^2.27.9",
     "@types/node": "^22.10.1",
     "@vitejs/plugin-vue": "^6.0.0",
     "@vitejs/plugin-vue-jsx": "^5.0.1",
