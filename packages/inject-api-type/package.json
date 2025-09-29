@@ -11,7 +11,7 @@
   "scripts": {
     "dev": "tsdown --watch",
     "build": "tsdown",
-    "publish:ci": "pnpm build && npm version patch && npm publish --access public"
+    "lint": "eslint --fix"
   },
   "dependencies": {
     "chokidar": "^4.0.1"

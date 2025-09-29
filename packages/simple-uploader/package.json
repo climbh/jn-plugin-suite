@@ -1,24 +1,22 @@
 {
   "name": "@jsjn/simple-uploader.js",
+  "type": "module",
   "version": "0.1.1",
   "description": "Uploader library implements html5 file upload and provides multiple simultaneous, stable, fault tolerant and resumable uploads",
   "author": "climbh <climbh.me@gmail.com>",
   "license": "MIT",
-  "type": "module",
-  "module": "dist/uploader.js",
   "exports": {
     ".": {
       "import": "./dist/uploader.js"
     }
   },
+  "module": "dist/uploader.js",
   "scripts": {
     "dev": "tsdown --watch",
     "build": "tsdown",
     "lint": "eslint --fix"
   },
   "devDependencies": {
-    "tsdown": "^0.14.1",
-    "typescript": "^5.0.0",
     "codecov": "^3.6.5",
     "jasmine": "^2.6.0",
     "jasmine-core": "^2.6.4",
@@ -29,6 +27,8 @@
     "karma-firefox-launcher": "^1.0.1",
     "karma-jasmine": "^1.1.0",
     "karma-phantomjs-launcher": "^1.0.4",
+    "tsdown": "^0.14.1",
+    "typescript": "^5.0.0",
     "karma-sauce-launcher": "^1.1.0",
     "sinon": "1.7.3"
   },

@@ -16,8 +16,7 @@
   "scripts": {
     "dev": "tsdown --watch",
     "build": "tsdown",
-    "publish:ci": "pnpm build && npm version patch && npm publish --access public",
-    "publish": "npm publish"
+    "lint": "eslint --fix"
   },
   "devDependencies": {
     "sa-sdk-javascript": "1.27.4"
