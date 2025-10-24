@@ -1,6 +1,6 @@
-import { defineConfig } from 'tsdown'
+import { defineConfig } from 'tsup'
 
-export default defineConfig(_options => ({
+export default defineConfig({
   entry: ['src/index.ts'],
   outDir: 'dist',
   target: 'node20',
@@ -11,4 +11,4 @@ export default defineConfig(_options => ({
   treeshake: true,
   splitting: true,
   sourcemap: false,
-}))
+})

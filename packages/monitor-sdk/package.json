@@ -1,7 +1,7 @@
 {
   "name": "@jsjn/monitor-sdk",
   "type": "module",
-  "version": "0.1.12",
+  "version": "0.1.13",
   "description": "金农前端平台监控系统",
   "exports": {
     "import": "./dist/index.js"
@@ -14,8 +14,8 @@
     "dist"
   ],
   "scripts": {
-    "dev": "tsdown --watch",
-    "build": "tsdown",
+    "dev": "tsup --watch",
+    "build": "tsup",
     "lint": "eslint --fix"
   },
   "devDependencies": {

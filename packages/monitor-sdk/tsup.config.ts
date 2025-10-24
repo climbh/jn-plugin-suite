@@ -1,6 +1,6 @@
-import { defineConfig } from 'tsdown'
+import { defineConfig } from 'tsup'
 
-export default defineConfig(_options => ({
+export default defineConfig({
   entry: ['src/index.ts'],
   outDir: 'dist',
   target: 'esnext',
@@ -12,11 +12,9 @@ export default defineConfig(_options => ({
   treeshake: true,
   splitting: false,
   globalName: 'JnMonitor', // IIFE 格式的全局变量名
-  outputOptions(outputOptions, format) {
-    if (format === 'iife') {
-      outputOptions.entryFileNames = 'index.global.js'
+  outExtension({ format }) {
+    return {
+      js: format === 'iife' ? '.global.js' : '.js'
     }
-    return outputOptions
   },
-
-}))
+})
