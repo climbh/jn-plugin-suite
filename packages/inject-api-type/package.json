@@ -12,7 +12,8 @@
     "dev": "tsup --watch",
     "build": "tsup",
     "lint": "eslint --fix",
-    "release": "bumpp"
+    "release": "bumpp",
+    "publish": "pnpm publish --registry http://172.31.71.159/repository/npm-jsjngf/"
   },
   "dependencies": {
     "chokidar": "^4.0.1"

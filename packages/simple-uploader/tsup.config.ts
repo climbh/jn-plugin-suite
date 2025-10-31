@@ -16,6 +16,6 @@ export default defineConfig({
  * @author dolymood <dolymood@gmail.com>
  * @link https://github.com/simple-uploader/Uploader
  * @license MIT
- */`
-  }
+ */`,
+  },
 })

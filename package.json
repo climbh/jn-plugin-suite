@@ -12,11 +12,7 @@
     "build": "pnpm -r run build",
     "dev": "pnpm -r --parallel run dev",
     "lint": "pnpm -r run lint",
-    "clean": "pnpm -r exec rm -rf dist",
-    "changeset": "changeset",
-    "version-packages": "changeset version",
-    "release": "pnpm build && changeset publish",
-    "release:ci": "pnpm build && changeset publish --registry http://172.31.71.159/repository/npm-jsjngf/"
+    "clean": "pnpm -r exec rm -rf dist"
   },
   "dependencies": {
     "@jsjn/micro-core-store": "^2.1.0",
@@ -55,8 +51,5 @@
     "vite-plugin-dts": "^3.0.0",
     "webpack": "^5.97.0"
   },
-  "git-check": false,
-  "volta": {
-    "node": "22.18.0"
-  }
+  "git-check": false
 }

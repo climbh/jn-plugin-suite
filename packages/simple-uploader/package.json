@@ -1,7 +1,7 @@
 {
   "name": "@jsjn/simple-uploader.js",
   "type": "module",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Uploader library implements html5 file upload and provides multiple simultaneous, stable, fault tolerant and resumable uploads",
   "author": "climbh <climbh.me@gmail.com>",
   "license": "MIT",
@@ -11,10 +11,15 @@
     }
   },
   "module": "dist/uploader.js",
+  "engines": {
+    "node": ">=14"
+  },
   "scripts": {
     "dev": "tsup --watch",
     "build": "tsup",
-    "lint": "eslint --fix"
+    "lint": "eslint --fix",
+    "release": "bumpp",
+    "publish": "pnpm publish --registry http://172.31.71.159/repository/npm-jsjngf/"
   },
   "devDependencies": {
     "codecov": "^3.6.5",
@@ -32,5 +37,8 @@
   },
   "publishConfig": {
     "registry": "http://172.31.71.159/repository/npm-jsjngf/"
+  },
+  "volta": {
+    "node": "14.21.3"
   }
 }
