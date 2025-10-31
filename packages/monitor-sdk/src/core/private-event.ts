@@ -3,7 +3,7 @@ import type { SuperProperties } from './types'
 import useApp from '../hooks/useApp'
 import { findNodeAndParentsByPath, replacePath, replaceServerUrl } from '../utils'
 import { registerSuperProperties } from './event'
-import { getMonitorInstance, getRouterMapping } from './instance'
+import { getMonitorInitialized, getMonitorInstance, getRouterMapping } from './instance'
 
 const monitorInstance = getMonitorInstance()
 
@@ -50,6 +50,8 @@ export function addMenuInfo(path: string) {
  * 上报信息中添加用户信息
  */
 export function __loginHandle(userId?: string, reload: boolean = false) {
+  if (!getMonitorInitialized())
+    return
   const $store = useApp().$store
   const { instituInfo, loginInfo, departList } = $store.state.currentUserInfo
   const { access_token } = $store.state.loginInfo
@@ -77,6 +79,8 @@ export function __loginHandle(userId?: string, reload: boolean = false) {
  * @description 取消用户关联, 在用户退出登录后调用
  */
 export function __logOutHandle() {
+  if (!getMonitorInitialized())
+    return
   replaceServerUrl('')
   registerSuperProperties<SuperProperties>({
     $institu_id: '',

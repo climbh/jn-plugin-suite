@@ -3,10 +3,19 @@ import type { RouteConfig } from '../utils'
 import type { Monitor } from './types'
 import monitor from 'sa-sdk-javascript'
 
+let isMonitorInitialized = false
+
+export function setMonitorInitialized(status: boolean) {
+  isMonitorInitialized = status
+}
+
+export function getMonitorInitialized() {
+  return isMonitorInitialized
+}
+
 /**
  * 神策SDK实例
  */
-
 export function getMonitorInstance() {
   return monitor as Monitor
 }

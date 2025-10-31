@@ -3,8 +3,8 @@ import type { RouteConfig } from '../utils'
 import type { DeepPartial } from '../utils/type'
 import type { MonitorSdkConfig } from './types'
 import { registerPlugin } from '../plugins'
-import { isLoginPage, mergeData, urlHashString } from '../utils'
-import { getMonitorInstance, setApp, setRouterMapping } from './instance'
+import { isLoginPage, isUrlValid, mergeData, urlHashString } from '../utils'
+import { getMonitorInstance, setApp, setMonitorInitialized, setRouterMapping } from './instance'
 import { __loginHandle, addMenuInfo } from './private-event'
 import listeningToRoute from './router'
 
@@ -60,13 +60,17 @@ function initMonitorSdk(
   // 神策sdk没有直接禁用sdk的配置, 所以手动设置 server_url 为空来阻止上报
   if (!initConfig.enable_sdk) {
     initConfig.server_url = ''
+    setMonitorInitialized(false)
     return
   }
 
-  if (!initConfig.server_url) {
-    console.warn('当前 server_url 为空或不正确，network 中不会发数据，请配置正确的 server_url！')
+  if (!isUrlValid(initConfig.server_url)) {
+    console.warn('当前 server_url 为空或不合法，请配置正确的 server_url！')
+    setMonitorInitialized(false)
     return
   }
+
+  setMonitorInitialized(true)
 
   // 注册插件
   registerPlugin(monitorInstance, {

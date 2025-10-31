@@ -204,3 +204,17 @@ export function replaceServerUrl(userId: string) {
   }
   monitorInstance.para.server_url = orginUrl
 }
+
+/**
+ * 是否是合法的url
+ */
+export function isUrlValid(url: string) {
+  try {
+    const _ = new URL(url)
+    return true
+  }
+  // eslint-disable-next-line unused-imports/no-unused-vars
+  catch (error) {
+    return false
+  }
+}
