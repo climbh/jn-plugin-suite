@@ -1,6 +1,6 @@
 {
   "name": "@jsjn/inject-api-type",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "注入接口类型，使得api调用时获取智能提示, 适用于webpack。",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
