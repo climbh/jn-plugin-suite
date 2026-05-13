@@ -1,171 +1,165 @@
-var oproto = Object.prototype
-var aproto = Array.prototype
-var serialize = oproto.toString
+const objectPrototype = Object.prototype
+const arrayPrototype = Array.prototype
+const serialize = objectPrototype.toString
 
-var isFunction = function (fn) {
-  return serialize.call(fn) === '[object Function]'
+const isFunction = fn => serialize.call(fn) === '[object Function]'
+
+const isArray = Array.isArray || /* istanbul ignore next */ (value => serialize.call(value) === '[object Array]')
+
+function isPlainObject(value) {
+  return serialize.call(value) === '[object Object]' && Object.getPrototypeOf(value) === objectPrototype
 }
 
-var isArray = Array.isArray || /* istanbul ignore next */ function (ary) {
-  return serialize.call(ary) === '[object Array]'
-}
+let uid = 0
 
-var isPlainObject = function (obj) {
-  return serialize.call(obj) === '[object Object]' && Object.getPrototypeOf(obj) === oproto
-}
-
-var i = 0
-var utils = {
-  uid: function () {
-    return ++i
+const utils = {
+  uid() {
+    uid += 1
+    return uid
   },
-  noop: function () {},
-  bind: function (fn, context) {
-    return function () {
-      return fn.apply(context, arguments)
-    }
+
+  noop() {},
+
+  bind(fn, context) {
+    return (...args) => fn.apply(context, args)
   },
-  preventEvent: function (evt) {
+
+  preventEvent(evt) {
     evt.preventDefault()
   },
-  stop: function (evt) {
+
+  stop(evt) {
     evt.preventDefault()
     evt.stopPropagation()
   },
-  nextTick: function (fn, context) {
+
+  nextTick(fn, context) {
     setTimeout(utils.bind(fn, context), 0)
   },
-  toArray: function (ary, start, end) {
-    if (start === undefined) start = 0
-    if (end === undefined) end = ary.length
-    return aproto.slice.call(ary, start, end)
+
+  toArray(arrayLike, start = 0, end = arrayLike.length) {
+    return arrayPrototype.slice.call(arrayLike, start, end)
   },
 
-  isPlainObject: isPlainObject,
-  isFunction: isFunction,
-  isArray: isArray,
-  isObject: function (obj) {
-    return Object(obj) === obj
-  },
-  isString: function (s) {
-    return typeof s === 'string'
-  },
-  isUndefined: function (a) {
-    return typeof a === 'undefined'
-  },
-  isDefined: function (a) {
-    return typeof a !== 'undefined'
+  isPlainObject,
+  isFunction,
+  isArray,
+
+  isObject(value) {
+    return Object(value) === value
   },
 
-  each: function (ary, func, context) {
-    if (utils.isDefined(ary.length)) {
-      for (var i = 0, len = ary.length; i < len; i++) {
-        if (func.call(context, ary[i], i, ary) === false) {
+  isString(value) {
+    return typeof value === 'string'
+  },
+
+  isUndefined(value) {
+    return typeof value === 'undefined'
+  },
+
+  isDefined(value) {
+    return typeof value !== 'undefined'
+  },
+
+  each(collection, iteratee, context) {
+    if (!collection) {
+      return
+    }
+
+    if (utils.isDefined(collection.length)) {
+      for (let index = 0; index < collection.length; index += 1) {
+        if (iteratee.call(context, collection[index], index, collection) === false) {
           break
         }
       }
-    } else {
-      for (var k in ary) {
-        if (func.call(context, ary[k], k, ary) === false) {
-          break
-        }
+      return
+    }
+
+    for (const key in collection) {
+      if (iteratee.call(context, collection[key], key, collection) === false) {
+        break
       }
     }
   },
 
-  /**
-   * If option is a function, evaluate it with given params
-   * @param {*} data
-   * @param {...} args arguments of a callback
-   * @returns {*}
-   */
-  evalOpts: function (data, args) {
-    if (utils.isFunction(data)) {
-      // `arguments` is an object, not array, in FF, so:
-      args = utils.toArray(arguments)
-      data = data.apply(null, args.slice(1))
-    }
-    return data
+  evalOpts(data, ...args) {
+    return utils.isFunction(data) ? data(...args) : data
   },
 
-  extend: function () {
-    var options
-    var name
-    var src
-    var copy
-    var copyIsArray
-    var clone
-    var target = arguments[0] || {}
-    var i = 1
-    var length = arguments.length
-    var force = false
+  extend(...args) {
+    let target = args[0] || {}
+    let startIndex = 1
+    let force = false
 
-    // 如果第一个参数为布尔,判定是否深拷贝
     if (typeof target === 'boolean') {
       force = target
-      target = arguments[1] || {}
-      i++
+      target = args[1] || {}
+      startIndex = 2
     }
 
-    // 确保接受方为一个复杂的数据类型
     if (typeof target !== 'object' && !isFunction(target)) {
       target = {}
     }
 
-    // 如果只有一个参数，那么新成员添加于 extend 所在的对象上
-    if (i === length) {
+    if (startIndex >= args.length) {
       target = this
-      i--
+      startIndex -= 1
     }
 
-    for (; i < length; i++) {
-      // 只处理非空参数
-      if ((options = arguments[i]) !== null) {
-        for (name in options) {
-          src = target[name]
-          copy = options[name]
+    for (let index = startIndex; index < args.length; index += 1) {
+      const source = args[index]
+      if (source == null) {
+        continue
+      }
 
-          // 防止环引用
-          if (target === copy) {
-            continue
-          }
-          if (force && copy && (isPlainObject(copy) || (copyIsArray = isArray(copy)))) {
-            if (copyIsArray) {
-              copyIsArray = false
-              clone = src && isArray(src) ? src : []
-            } else {
-              clone = src && isPlainObject(src) ? src : {}
-            }
-            target[name] = utils.extend(force, clone, copy)
-          } else if (copy !== undefined) {
-            target[name] = copy
-          }
+      for (const key in source) {
+        const currentValue = target[key]
+        const nextValue = source[key]
+
+        if (target === nextValue) {
+          continue
+        }
+
+        if (force && nextValue && (isPlainObject(nextValue) || isArray(nextValue))) {
+          const clone = isArray(nextValue)
+            ? (isArray(currentValue) ? currentValue : [])
+            : (isPlainObject(currentValue) ? currentValue : {})
+
+          target[key] = utils.extend(true, clone, nextValue)
+          continue
+        }
+
+        if (nextValue !== undefined) {
+          target[key] = nextValue
         }
       }
     }
+
     return target
   },
 
-  formatSize: function (size) {
+  formatSize(size) {
     if (size < 1024) {
-      return size.toFixed(0) + ' bytes'
-    } else if (size < 1024 * 1024) {
-      return (size / 1024.0).toFixed(0) + ' KB'
-    } else if (size < 1024 * 1024 * 1024) {
-      return (size / 1024.0 / 1024.0).toFixed(1) + ' MB'
+      return `${size.toFixed(0)} bytes`
     }
-      return (size / 1024.0 / 1024.0 / 1024.0).toFixed(1) + ' GB'
-    
+    if (size < 1024 * 1024) {
+      return `${(size / 1024).toFixed(0)} KB`
+    }
+    if (size < 1024 * 1024 * 1024) {
+      return `${(size / 1024 / 1024).toFixed(1)} MB`
+    }
+
+    return `${(size / 1024 / 1024 / 1024).toFixed(1)} GB`
   },
 
-  defineNonEnumerable: function (target, key, value) {
+  defineNonEnumerable(target, key, value) {
     Object.defineProperty(target, key, {
       enumerable: false,
       configurable: true,
       writable: true,
-      value: value
+      value,
     })
-  }
+  },
 }
 
-module.exports = utils
+export default utils

@@ -2,18 +2,18 @@
   "compilerOptions": {
     "target": "ESNext",
     "module": "ESNext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "strict": true,
-    "esModuleInterop": true,
+    "declaration": true,
+    "outDir": "dist",
     "allowSyntheticDefaultImports": true,
-    "skipLibCheck": true,
+    "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
-    "declaration": false,
-    "outDir": "dist"
+    "skipLibCheck": true
   },
   "include": [
     "src/**/*",
-    "tsdown.config.ts"
+    "tsup.config.ts"
   ],
   "exclude": [
     "dist",

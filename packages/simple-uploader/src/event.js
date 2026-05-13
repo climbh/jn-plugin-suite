@@ -1,56 +1,75 @@
-const each = require('./utils').each
+import utils from './utils.js'
+
+const { each } = utils
 
 const event = {
-
   _eventData: null,
 
   on(name, func) {
-    if (!this._eventData)
+    if (!this._eventData) {
       this._eventData = {}
-    if (!this._eventData[name])
+    }
+    if (!this._eventData[name]) {
       this._eventData[name] = []
+    }
+
     let listened = false
-    each(this._eventData[name], (fuc) => {
-      if (fuc === func) {
+    each(this._eventData[name], (registeredHandler) => {
+      if (registeredHandler === func) {
         listened = true
         return false
       }
+
+      return true
     })
+
     if (!listened) {
       this._eventData[name].push(func)
     }
   },
 
   off(name, func) {
-    if (!this._eventData)
+    if (!this._eventData) {
       this._eventData = {}
-    if (!this._eventData[name] || this._eventData[name].length === 0)
+    }
+
+    const listeners = this._eventData[name]
+    if (!listeners || listeners.length === 0) {
       return
-    if (func) {
-      each(this._eventData[name], function (fuc, i) {
-        if (fuc === func) {
-          this._eventData[name].splice(i, 1)
-          return false
-        }
-      }, this)
     }
-    else {
+
+    if (!func) {
       this._eventData[name] = []
+      return
     }
+
+    each(listeners, function removeHandler(registeredHandler, index) {
+      if (registeredHandler === func) {
+        this._eventData[name].splice(index, 1)
+        return false
+      }
+
+      return true
+    }, this)
   },
 
-  trigger(name) {
-    if (!this._eventData)
+  trigger(name, ...args) {
+    if (!this._eventData) {
       this._eventData = {}
-    if (!this._eventData[name])
+    }
+
+    const listeners = this._eventData[name]
+    if (!listeners) {
       return true
-    let args = this._eventData[name].slice.call(arguments, 1)
+    }
+
     let preventDefault = false
-    each(this._eventData[name], function (fuc) {
-      preventDefault = fuc.apply(this, args) === false || preventDefault
+    each(listeners, function triggerHandler(handler) {
+      preventDefault = handler.apply(this, args) === false || preventDefault
     }, this)
+
     return !preventDefault
   },
 }
 
-module.exports = event
+export default event

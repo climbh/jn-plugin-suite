@@ -1,517 +1,505 @@
-var utils = require('./utils')
-var event = require('./event')
-var File = require('./file')
-var Chunk = require('./chunk')
+import Chunk from './chunk.js'
+import event from './event.js'
+import File from './file.js'
+import utils from './utils.js'
 
-var version = '__VERSION__'
+const version = '__VERSION__'
 
-var isServer = typeof window === 'undefined'
+const isServer = typeof window === 'undefined'
+const ie10plus = isServer ? false : window.navigator.msPointerEnabled
+let uploaderSliceName = 'slice'
 
-// ie10+
-var ie10plus = isServer ? false : window.navigator.msPointerEnabled
-var support = (function () {
+const support = (() => {
   if (isServer) {
     return false
   }
-  var sliceName = 'slice'
-  var _support = utils.isDefined(window.File) && utils.isDefined(window.Blob) &&
-                utils.isDefined(window.FileList)
-  var bproto = null
-  if (_support) {
-    bproto = window.Blob.prototype
-    utils.each(['slice', 'webkitSlice', 'mozSlice'], function (n) {
-      if (bproto[n]) {
-        sliceName = n
+
+  let isSupported = utils.isDefined(window.File)
+    && utils.isDefined(window.Blob)
+    && utils.isDefined(window.FileList)
+
+  if (isSupported) {
+    const blobPrototype = window.Blob.prototype
+    utils.each(['slice', 'webkitSlice', 'mozSlice'], (name) => {
+      if (blobPrototype[name]) {
+        uploaderSliceName = name
         return false
       }
+      return true
     })
-    _support = !!bproto[sliceName]
+    isSupported = Boolean(blobPrototype[uploaderSliceName])
   }
-  if (_support) Uploader.sliceName = sliceName
-  bproto = null
-  return _support
+
+  return isSupported
 })()
 
-var supportDirectory = (function () {
+const supportDirectory = (() => {
   if (isServer) {
     return false
   }
-  var input = window.document.createElement('input')
+
+  const input = window.document.createElement('input')
   input.type = 'file'
-  var sd = 'webkitdirectory' in input || 'directory' in input
-  input = null
-  return sd
+  return 'webkitdirectory' in input || 'directory' in input
 })()
 
-function Uploader (opts) {
-  this.support = support
-  /* istanbul ignore if */
-  if (!this.support) {
-    return
-  }
-  this.supportDirectory = supportDirectory
-  utils.defineNonEnumerable(this, 'filePaths', {})
-  this.opts = utils.extend({}, Uploader.defaults, opts || {})
-
-  this.preventEvent = utils.bind(this._preventEvent, this)
-
-  File.call(this, this)
-}
-
-/**
- * Default read function using the webAPI
- *
- * @function webAPIFileRead(fileObj, fileType, startByte, endByte, chunk)
- *
- */
-var webAPIFileRead = function (fileObj, fileType, startByte, endByte, chunk) {
+function webAPIFileRead(fileObj, fileType, startByte, endByte, chunk) {
   chunk.readFinished(fileObj.file[Uploader.sliceName](startByte, endByte, fileType))
 }
 
-Uploader.version = version
+class Uploader extends File {
+  static sliceName = uploaderSliceName
+  static version = version
 
-Uploader.defaults = {
-  chunkSize: 1024 * 1024,
-  forceChunkSize: false,
-  simultaneousUploads: 3,
-  singleFile: false,
-  fileParameterName: 'file',
-  progressCallbacksInterval: 500,
-  speedSmoothingFactor: 0.1,
-  query: {},
-  headers: {},
-  withCredentials: false,
-  preprocess: null,
-  method: 'multipart',
-  testMethod: 'GET',
-  uploadMethod: 'POST',
-  prioritizeFirstAndLastChunk: false,
-  allowDuplicateUploads: false,
-  target: '/',
-  testChunks: true,
-  generateUniqueIdentifier: null,
-  maxChunkRetries: 0,
-  chunkRetryInterval: null,
-  permanentErrors: [404, 415, 500, 501],
-  successStatuses: [200, 201, 202],
-  onDropStopPropagation: false,
-  initFileFn: null,
-  readFileFn: webAPIFileRead,
-  checkChunkUploadedByResponse: null,
-  checkChunkUploaded: null,
-  initialPaused: false,
-  processResponse: function (response, cb) {
-    cb(null, response)
-  },
-  processParams: function (params) {
-    return params
+  static defaults = {
+    chunkSize: 1024 * 1024,
+    forceChunkSize: false,
+    simultaneousUploads: 3,
+    singleFile: false,
+    fileParameterName: 'file',
+    progressCallbacksInterval: 500,
+    speedSmoothingFactor: 0.1,
+    query: {},
+    headers: {},
+    withCredentials: false,
+    preprocess: null,
+    method: 'multipart',
+    testMethod: 'GET',
+    uploadMethod: 'POST',
+    prioritizeFirstAndLastChunk: false,
+    allowDuplicateUploads: false,
+    target: '/',
+    testChunks: true,
+    generateUniqueIdentifier: null,
+    maxChunkRetries: 0,
+    chunkRetryInterval: null,
+    permanentErrors: [404, 415, 500, 501],
+    successStatuses: [200, 201, 202],
+    onDropStopPropagation: false,
+    initFileFn: null,
+    readFileFn: webAPIFileRead,
+    checkChunkUploadedByResponse: null,
+    checkChunkUploaded: null,
+    initialPaused: false,
+    processResponse(response, cb) {
+      cb(null, response)
+    },
+    processParams(params) {
+      return params
+    },
   }
-}
 
-Uploader.utils = utils
-Uploader.event = event
-Uploader.File = File
-Uploader.Chunk = Chunk
+  static utils = utils
+  static event = event
+  static File = File
+  static Chunk = Chunk
 
-// inherit file
-Uploader.prototype = utils.extend({}, File.prototype)
-// inherit event
-utils.extend(Uploader.prototype, event)
-utils.extend(Uploader.prototype, {
+  constructor(opts) {
+    super(null, null, null, { isRoot: true })
 
-  constructor: Uploader,
+    this.support = support
+    /* istanbul ignore if */
+    if (!this.support) {
+      return
+    }
 
-  _trigger: function (name) {
-    var args = utils.toArray(arguments)
-    var preventDefault = !this.trigger.apply(this, arguments)
+    this.supportDirectory = supportDirectory
+    utils.defineNonEnumerable(this, 'filePaths', {})
+    this.opts = utils.extend({}, Uploader.defaults, opts || {})
+    this.preventEvent = utils.bind(this._preventEvent, this)
+    this.paused = this.opts.initialPaused
+  }
+
+  on(name, func) {
+    return event.on.call(this, name, func)
+  }
+
+  off(name, func) {
+    return event.off.call(this, name, func)
+  }
+
+  trigger(name, ...args) {
+    return event.trigger.call(this, name, ...args)
+  }
+
+  _trigger(name, ...args) {
+    const preventDefault = !this.trigger(name, ...args)
     if (name !== 'catchAll') {
-      args.unshift('catchAll')
-      preventDefault = !this.trigger.apply(this, args) || preventDefault
+      return !(!this.trigger('catchAll', name, ...args) || preventDefault)
     }
     return !preventDefault
-  },
+  }
 
-  _triggerAsync: function () {
-    var args = arguments
-    utils.nextTick(function () {
-      this._trigger.apply(this, args)
+  _triggerAsync(...args) {
+    utils.nextTick(function triggerAsync() {
+      this._trigger(...args)
     }, this)
-  },
+  }
 
-  addFiles: function (files, evt) {
-    var _files = []
-    var oldFileListLen = this.fileList.length
-    utils.each(files, function (file) {
-      // Uploading empty file IE10/IE11 hangs indefinitely
-      // Directories have size `0` and name `.`
-      // Ignore already added files if opts.allowDuplicateUploads is set to false
-      if ((!ie10plus || ie10plus && file.size > 0) && !(file.size % 4096 === 0 && (file.name === '.' || file.fileName === '.'))) {
-        var uniqueIdentifier = this.generateUniqueIdentifier(file)
-        if (this.opts.allowDuplicateUploads || !this.getFromUniqueIdentifier(uniqueIdentifier)) {
-          var _file = new File(this, file, this)
-          _file.uniqueIdentifier = uniqueIdentifier
-          if (this._trigger('fileAdded', _file, evt)) {
-            _files.push(_file)
-          } else {
-            File.prototype.removeFile.call(this, _file)
-          }
-        }
+  addFiles(files, evt) {
+    const addedFiles = []
+    const oldFileListLength = this.fileList.length
+
+    utils.each(files, (file) => {
+      const isValidIEFile = !ie10plus || (ie10plus && file.size > 0)
+      const isDotDirectory = file.size % 4096 === 0 && (file.name === '.' || file.fileName === '.')
+      if (!isValidIEFile || isDotDirectory) {
+        return
+      }
+
+      const uniqueIdentifier = this.generateUniqueIdentifier(file)
+      if (!this.opts.allowDuplicateUploads && this.getFromUniqueIdentifier(uniqueIdentifier)) {
+        return
+      }
+
+      const nextFile = new File(this, file, this)
+      nextFile.uniqueIdentifier = uniqueIdentifier
+
+      if (this._trigger('fileAdded', nextFile, evt)) {
+        addedFiles.push(nextFile)
+      }
+      else {
+        File.prototype.removeFile.call(this, nextFile)
       }
     }, this)
-    // get new fileList
-    var newFileList = this.fileList.slice(oldFileListLen)
-    if (this._trigger('filesAdded', _files, newFileList, evt)) {
-      utils.each(_files, function (file) {
-        if (this.opts.singleFile && this.files.length > 0) {
-          this.removeFile(this.files[0])
-        }
-        this.files.push(file)
-      }, this)
-      this._trigger('filesSubmitted', _files, newFileList, evt)
-    } else {
-      utils.each(newFileList, function (file) {
+
+    const newFileList = this.fileList.slice(oldFileListLength)
+    if (!this._trigger('filesAdded', addedFiles, newFileList, evt)) {
+      utils.each(newFileList, (file) => {
         File.prototype.removeFile.call(this, file)
       }, this)
+      return
     }
-  },
 
-  addFile: function (file, evt) {
+    utils.each(addedFiles, (file) => {
+      if (this.opts.singleFile && this.files.length > 0) {
+        this.removeFile(this.files[0])
+      }
+      this.files.push(file)
+    }, this)
+
+    this._trigger('filesSubmitted', addedFiles, newFileList, evt)
+  }
+
+  addFile(file, evt = null) {
     this.addFiles([file], evt)
-  },
+  }
 
-  cancel: function () {
-    for (var i = this.fileList.length - 1; i >= 0; i--) {
-      this.fileList[i].cancel()
+  cancel() {
+    for (let index = this.fileList.length - 1; index >= 0; index -= 1) {
+      this.fileList[index].cancel()
     }
-  },
+  }
 
-  removeFile: function (file) {
+  removeFile(file) {
     File.prototype.removeFile.call(this, file)
     this._trigger('fileRemoved', file)
-  },
+  }
 
-  generateUniqueIdentifier: function (file) {
-    var custom = this.opts.generateUniqueIdentifier
+  generateUniqueIdentifier(file) {
+    const { generateUniqueIdentifier: custom } = this.opts
     if (utils.isFunction(custom)) {
       return custom(file)
     }
-    /* istanbul ignore next */
-    // Some confusion in different versions of Firefox
-    var relativePath = file.relativePath || file.webkitRelativePath || file.fileName || file.name
-    /* istanbul ignore next */
-    return file.size + '-' + relativePath.replaceAll(/[^0-9a-zA-Z_-]/img, '')
-  },
 
-  getFromUniqueIdentifier: function (uniqueIdentifier) {
-    var ret = false
-    utils.each(this.files, function (file) {
+    const relativePath = file.relativePath || file.webkitRelativePath || file.fileName || file.name
+    return `${file.size}-${relativePath.replace(/[^\w-]/g, '')}`
+  }
+
+  getFromUniqueIdentifier(uniqueIdentifier) {
+    let match = false
+    utils.each(this.files, (file) => {
       if (file.uniqueIdentifier === uniqueIdentifier) {
-        ret = file
+        match = file
         return false
       }
+      return true
     })
-    return ret
-  },
+    return match
+  }
 
-  uploadNextChunk: function (preventEvents) {
-    var found = false
-    var pendingStatus = Chunk.STATUS.PENDING
-    // 只有testChunks为true时才使用checkChunkUploadedByResponse
-    var checkChunkUploadedByResponse = this.opts.testChunks ? this.opts.checkChunkUploadedByResponse : null
-    
+  uploadNextChunk(preventEvents = false) {
+    let found = false
+    const pendingStatus = Chunk.STATUS.PENDING
+    const checkChunkUploadedByResponse = this.opts.testChunks ? this.opts.checkChunkUploadedByResponse : null
+
     if (this.opts.prioritizeFirstAndLastChunk) {
-      utils.each(this.files, function (file) {
+      utils.each(this.files, (file) => {
         if (file.paused) {
           return
         }
         if (checkChunkUploadedByResponse && !file._firstResponse && file.isUploading()) {
-          // 等待当前文件第一个分片的响应
           return
         }
+
         if (file.chunks.length > 0 && file.chunks[0].status() === pendingStatus) {
           file.chunks[0].send()
           found = true
           return false
         }
-        if (file.chunks.length > 1 && file.chunks[file.chunks.length - 1].status() === pendingStatus) {
-          file.chunks[file.chunks.length - 1].send()
+
+        const lastChunk = file.chunks[file.chunks.length - 1]
+        if (file.chunks.length > 1 && lastChunk.status() === pendingStatus) {
+          lastChunk.send()
           found = true
           return false
         }
+
+        return true
       })
+
       if (found) {
-        return found
+        return true
       }
     }
 
-    // 现在，简单地寻找下一个最佳的上传内容
-    utils.each(this.files, function (file) {
+    utils.each(this.files, (file) => {
       if (!file.paused) {
         if (checkChunkUploadedByResponse && !file._firstResponse && file.isUploading()) {
-          // 等待当前文件第一个分片的响应
           return
         }
-        utils.each(file.chunks, function (chunk) {
+
+        utils.each(file.chunks, (chunk) => {
           if (chunk.status() === pendingStatus) {
             chunk.send()
             found = true
             return false
           }
+          return true
         })
       }
+
       if (found) {
         return false
       }
+      return true
     })
+
     if (found) {
       return true
     }
 
-    // 没有更多待上传的分片，检查是否全部完成
-    var outstanding = false
-    utils.each(this.files, function (file) {
+    let outstanding = false
+    utils.each(this.files, (file) => {
       if (!file.isComplete()) {
         outstanding = true
         return false
       }
+      return true
     })
-    // 现在应该检查文件
-    // 如果列表中没有文件
-    // 不应该触发complete事件
+
     if (!outstanding && !preventEvents && this.files.length > 0) {
-      // 所有分片都已上传完成
       this._triggerAsync('complete')
     }
-    return outstanding
-  },
 
-  upload: function (preventEvents) {
-    // Make sure we don't start too many uploads at once
-    var ret = this._shouldUploadNext()
-    if (ret === false) {
+    return outstanding
+  }
+
+  upload(preventEvents = false) {
+    const uploadingCount = this._shouldUploadNext()
+    if (uploadingCount === false) {
       return
     }
-    !preventEvents && this._trigger('uploadStart')
-    var started = false
-    for (var num = 1; num <= this.opts.simultaneousUploads - ret; num++) {
+
+    if (!preventEvents) {
+      this._trigger('uploadStart')
+    }
+
+    let started = false
+    for (let count = 1; count <= this.opts.simultaneousUploads - uploadingCount; count += 1) {
       started = this.uploadNextChunk(!preventEvents) || started
       if (!started && preventEvents) {
-        // completed
         break
       }
     }
+
     if (!started && !preventEvents) {
       this._triggerAsync('complete')
     }
-  },
+  }
 
-  /**
-   * should upload next chunk
-   * @function
-   * @returns {Boolean|Number}
-   */
-  _shouldUploadNext: function () {
-    var num = 0
-    var should = true
-    var simultaneousUploads = this.opts.simultaneousUploads
-    var uploadingStatus = Chunk.STATUS.UPLOADING
-    utils.each(this.files, function (file) {
-      utils.each(file.chunks, function (chunk) {
-        if (chunk.status() === uploadingStatus) {
-          num++
-          if (num >= simultaneousUploads) {
-            should = false
+  _shouldUploadNext() {
+    let count = 0
+    let shouldUpload = true
+    const { simultaneousUploads } = this.opts
+
+    utils.each(this.files, (file) => {
+      utils.each(file.chunks, (chunk) => {
+        if (chunk.status() === Chunk.STATUS.UPLOADING) {
+          count += 1
+          if (count >= simultaneousUploads) {
+            shouldUpload = false
             return false
           }
         }
+        return true
       })
-      return should
+      return shouldUpload
     })
-    // if should is true then return uploading chunks's length
-    return should && num
-  },
 
-  /**
-   * Assign a browse action to one or more DOM nodes.
-   * @function
-   * @param {Element|Array.<Element>} domNodes
-   * @param {boolean} isDirectory Pass in true to allow directories to
-   * @param {boolean} singleFile prevent multi file upload
-   * @param {Object} attributes set custom attributes:
-   *  http://www.w3.org/TR/html-markup/input.file.html#input.file-attributes
-   *  eg: accept: 'image/*'
-   * be selected (Chrome only).
-   */
-  assignBrowse: function (domNodes, isDirectory, singleFile, attributes) {
-    if (domNodes.length === 'undefined') {
-      domNodes = [domNodes]
-    }
+    return shouldUpload && count
+  }
 
-    utils.each(domNodes, function (domNode) {
-      var input
+  assignBrowse(domNodes, isDirectory, singleFile, attributes) {
+    const nodes = typeof domNodes.length === 'undefined' ? [domNodes] : domNodes
+
+    utils.each(nodes, (domNode) => {
+      let input
       if (domNode.tagName === 'INPUT' && domNode.type === 'file') {
         input = domNode
-      } else {
+      }
+      else {
         input = document.createElement('input')
         input.setAttribute('type', 'file')
-        // display:none - not working in opera 12
         utils.extend(input.style, {
           visibility: 'hidden',
           position: 'absolute',
           width: '1px',
-          height: '1px'
+          height: '1px',
         })
-        // for opera 12 browser, input must be assigned to a document
         domNode.append(input)
-        // https://developer.mozilla.org/en/using_files_from_web_applications)
-        // event listener is executed two times
-        // first one - original mouse click event
-        // second - input.click(), input is inside domNode
-        domNode.addEventListener('click', function () {
+        domNode.addEventListener('click', () => {
           if (domNode.tagName.toLowerCase() === 'label') {
             return
           }
           input.click()
         }, false)
       }
+
       if (!this.opts.singleFile && !singleFile) {
         input.setAttribute('multiple', 'multiple')
       }
       if (isDirectory) {
         input.setAttribute('webkitdirectory', 'webkitdirectory')
       }
-      attributes && utils.each(attributes, function (value, key) {
-        input.setAttribute(key, value)
-      })
-      // When new files are added, simply append them to the overall list
-      var that = this
-      input.addEventListener('change', function (e) {
-        that._trigger(e.type, e)
+      if (attributes) {
+        utils.each(attributes, (value, key) => {
+          input.setAttribute(key, value)
+        })
+      }
+
+      input.addEventListener('change', (e) => {
+        this._trigger(e.type, e)
         if (e.target.value) {
-          that.addFiles(e.target.files, e)
+          this.addFiles(e.target.files, e)
           e.target.value = ''
         }
       }, false)
     }, this)
-  },
+  }
 
-  onDrop: function (evt) {
+  onDrop(evt) {
     this._trigger(evt.type, evt)
     if (this.opts.onDropStopPropagation) {
       evt.stopPropagation()
     }
     evt.preventDefault()
     this._parseDataTransfer(evt.dataTransfer, evt)
-  },
+  }
 
-  _parseDataTransfer: function (dataTransfer, evt) {
-    if (dataTransfer.items && dataTransfer.items[0] &&
-      dataTransfer.items[0].webkitGetAsEntry) {
+  _parseDataTransfer(dataTransfer, evt) {
+    if (dataTransfer.items && dataTransfer.items[0] && dataTransfer.items[0].webkitGetAsEntry) {
       this.webkitReadDataTransfer(dataTransfer, evt)
-    } else {
-      this.addFiles(dataTransfer.files, evt)
+      return
     }
-  },
+    this.addFiles(dataTransfer.files, evt)
+  }
 
-  webkitReadDataTransfer: function (dataTransfer, evt) {
-    var self = this
-    var queue = dataTransfer.items.length
-    var files = []
-    utils.each(dataTransfer.items, function (item) {
-      var entry = item.webkitGetAsEntry()
-      if (!entry) {
-        decrement()
-        return
+  webkitReadDataTransfer(dataTransfer, evt) {
+    let queue = dataTransfer.items.length
+    const files = []
+
+    const decrement = () => {
+      queue -= 1
+      if (queue === 0) {
+        this.addFiles(files, evt)
       }
-      if (entry.isFile) {
-        // due to a bug in Chrome's File System API impl - #149735
-        fileReadSuccess(item.getAsFile(), entry.fullPath)
-      } else {
-        readDirectory(entry.createReader())
-      }
-    })
-    function readDirectory (reader) {
-      reader.readEntries(function (entries) {
-        if (entries.length > 0) {
-          queue += entries.length
-          utils.each(entries, function (entry) {
-            if (entry.isFile) {
-              var fullPath = entry.fullPath
-              entry.file(function (file) {
-                fileReadSuccess(file, fullPath)
-              }, readError)
-            } else if (entry.isDirectory) {
-              readDirectory(entry.createReader())
-            }
-          })
-          readDirectory(reader)
-        } else {
-          decrement()
-        }
-      }, readError)
     }
-    function fileReadSuccess (file, fullPath) {
-      // relative path should not start with "/"
+
+    const fileReadSuccess = (file, fullPath) => {
       file.relativePath = fullPath.slice(1)
       files.push(file)
       decrement()
     }
-    function readError (fileError) {
+
+    const readError = (fileError) => {
       throw fileError
     }
-    function decrement () {
-      if (--queue === 0) {
-        self.addFiles(files, evt)
-      }
-    }
-  },
 
-  _assignHelper: function (domNodes, handles, remove) {
-    if (typeof domNodes.length === 'undefined') {
-      domNodes = [domNodes]
+    const readDirectory = (reader) => {
+      reader.readEntries((entries) => {
+        if (entries.length === 0) {
+          decrement()
+          return
+        }
+
+        queue += entries.length
+        utils.each(entries, (entry) => {
+          if (entry.isFile) {
+            const { fullPath } = entry
+            entry.file((file) => {
+              fileReadSuccess(file, fullPath)
+            }, readError)
+          }
+          else if (entry.isDirectory) {
+            readDirectory(entry.createReader())
+          }
+        })
+        readDirectory(reader)
+      }, readError)
     }
-    var evtMethod = remove ? 'removeEventListener' : 'addEventListener'
-    utils.each(domNodes, function (domNode) {
-      utils.each(handles, function (handler, name) {
-        domNode[evtMethod](name, handler, false)
+
+    utils.each(dataTransfer.items, (item) => {
+      const entry = item.webkitGetAsEntry()
+      if (!entry) {
+        decrement()
+        return
+      }
+
+      if (entry.isFile) {
+        fileReadSuccess(item.getAsFile(), entry.fullPath)
+        return
+      }
+
+      readDirectory(entry.createReader())
+    })
+  }
+
+  _assignHelper(domNodes, handles, remove) {
+    const nodes = typeof domNodes.length === 'undefined' ? [domNodes] : domNodes
+    const eventMethod = remove ? 'removeEventListener' : 'addEventListener'
+
+    utils.each(nodes, (domNode) => {
+      utils.each(handles, (handler, name) => {
+        domNode[eventMethod](name, handler, false)
       }, this)
     }, this)
-  },
+  }
 
-  _preventEvent: function (e) {
+  _preventEvent(e) {
     utils.preventEvent(e)
     this._trigger(e.type, e)
-  },
+  }
 
-  /**
-   * Assign one or more DOM nodes as a drop target.
-   * @function
-   * @param {Element|Array.<Element>} domNodes
-   */
-  assignDrop: function (domNodes) {
+  assignDrop(domNodes) {
     this._onDrop = utils.bind(this.onDrop, this)
     this._assignHelper(domNodes, {
       dragover: this.preventEvent,
       dragenter: this.preventEvent,
       dragleave: this.preventEvent,
-      drop: this._onDrop
+      drop: this._onDrop,
     })
-  },
+  }
 
-  /**
-   * Un-assign drop event from DOM nodes
-   * @function
-   * @param domNodes
-   */
-  unAssignDrop: function (domNodes) {
+  unAssignDrop(domNodes) {
     this._assignHelper(domNodes, {
       dragover: this.preventEvent,
       dragenter: this.preventEvent,
       dragleave: this.preventEvent,
-      drop: this._onDrop
+      drop: this._onDrop,
     }, true)
     this._onDrop = null
   }
-})
+}
 
-module.exports = Uploader
+export default Uploader
